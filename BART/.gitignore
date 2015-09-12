@@ -1,0 +1,11 @@
+/output
+/dl
+/.auto.deps
+*.depend
+*.o
+/*.patch
+/*.diff
+*.orig
+*.rej
+*~
+*.pyc
