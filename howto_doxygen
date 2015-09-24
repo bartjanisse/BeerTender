@@ -1,0 +1,21 @@
+==============================================================================================================================
+Doxygen
+==============================================================================================================================
+sudo apt-get install doxygen
+sudo apt-get install doxygen-gui
+
+gebruik eventueel doxywizard
+
+doxygen -g => maakt een config file aan
+
+in de file 'Doxygen' de volgende settings gedaan:
+
+PROJECT_NAME           = "Xbox 360 controller demo"
+PROJECT_BRIEF          = "Program to demonstrate the capabilities of the Xbox 360 controller."
+OUTPUT_DIRECTORY       = doc
+INPUT                  = xbc.c xbcontroller.c xboxcontroller.h
+
+Om een pdf te maken moet je make draaien vanuit /doc/latex
+jiervoor moet je wel texlive installeren met: sudo apt-get install texlive
+
+voorbeelden: http://www.cs.cmu.edu/~410/doc/doxygen.html

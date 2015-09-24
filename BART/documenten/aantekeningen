@@ -1,0 +1,34 @@
+
+==============================================================================================================================
+.ssh
+==============================================================================================================================
+
+SSH zonder password
+
+1. Login op de pi met ssh
+2. Maak een directory: mkdir .ssh
+3. exit de sessie
+4. Maak een certificaat: ssh-keygen
+5. Ga naar: cd ~/.ssh
+6. Kopieer: scp id_rsa.pub root@192.168.123.42:.ssh/authorized_keys
+7. vanaf nu kun je vanaf je machine met ssh zonder password op de pi
+
+
+==============================================================================================================================
+GitHub
+==============================================================================================================================
+You can add files using git add, example git add README, git add <folder>/*, or even git add *
+
+Then use git commit -m "<Message>" to commit files
+
+Finally git push -u origin master to push files.
+
+Running a git pull origin master to ensure you have absorbed any upstream changes
+
+git add -A .  -> add all note the . for the current directory
+git commit -m "Rework devives"
+git push -u origin master
+
+git add -A .
+git commit
+git push -u origin master
