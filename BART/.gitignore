@@ -3,9 +3,13 @@
 /.auto.deps
 *.depend
 *.o
+*.ko
+*.mod.c
+*.mod.o
 /*.patch
 /*.diff
 *.orig
 *.rej
 *~
 *.pyc
+
