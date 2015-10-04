@@ -34,7 +34,8 @@ int main()
  
     /* Write operation to restart the PCF8563 register at index 2 ('secs' field) */
     BSC0_DLEN = 1;            // one byte
-    BSC0_FIFO = 2;            // value 2
+    BSC0_FIFO = 1;
+    //printf("%i\n",BSC0_FIFO);
     BSC0_S = CLEAR_STATUS;    // Reset status bits (see #define)
     BSC0_C = START_WRITE;     // Start Write (see #define)
  
@@ -49,7 +50,7 @@ int main()
     dump_bsc_status();
     int response;
 	//response = bcd_to_decimal(BSC0_FIFO);
-	printf("%u\n",BSC0_FIFO);
+
 	printf("%i\n",BSC0_FIFO);
 	
 	
@@ -120,10 +121,10 @@ void wait_i2c_done() {
 
 void i2c_init()
 {
-    INP_GPIO(0);
-    SET_GPIO_ALT(0, 0);
-    INP_GPIO(1);
-    SET_GPIO_ALT(1, 0);
+    INP_GPIO(2);
+    SET_GPIO_ALT(2, 0);
+    INP_GPIO(3);
+    SET_GPIO_ALT(3, 0);
 }
 
 // Priority
