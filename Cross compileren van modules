@@ -1,0 +1,16 @@
+Doe eerst op de pi het volgende: 
+
+-	uname -r
+
+Hiermee krijg je de Linux versie te zien die op de Pi draait. In mijn geval is dit '3.18.16-v7'
+
+
+Doe vervolgens op je eigen linux machine het volgende:
+
+-	cd /usr/src
+-	sudo wget https://github.com/raspberrypi/linux/archive/rpi-3.18.y.tar.gz
+-	sudo tar xvz rpi-3.18.y.tar.gz (kan even duren)
+-	sudo mv linux-rpi-3.18.y linux
+-	ln -s /usr/src/linux /lib/modules/3.18.16-v7/build
+
+

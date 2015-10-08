@@ -6,6 +6,7 @@
 *.ko
 *.mod.c
 *.mod.o
+*.tar
 /*.patch
 /*.diff
 *.orig

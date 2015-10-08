@@ -3,17 +3,20 @@
 #include <unistd.h>
 
 #include "../common/RPI.h"
+#include "../common/RPI_GPIO.h"
 
-#define LED_PIN		4 // GPIO 4 is pin 17
+#define LED_PIN		14 // GPIO 14 is pin 8
 
 int 
 main()
 {
-	if(map_peripheral(&gpio) == -1) 
+	if(init_gpio() == -1) 
 	{
 		printf("Failed to map the physical GPIO registers into the virtual memory space.\n");
         return (-1);
     }
+	
+	printf("Helloblink is started with GIOP%d at pin number 8.\n", LED_PIN);
 	
 	// Define gpio 4 (LED) as output
 	INP_GPIO(LED_PIN);

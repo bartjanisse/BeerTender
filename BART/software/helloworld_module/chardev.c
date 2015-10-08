@@ -9,9 +9,9 @@
  * 
  * notes:
  * 		- use make to build this module.
- * 		- use modinfo hello-*.ko to see the information in it.
- * 		- use sudo insmod ./hello-1.ko to insert it in the kernel.
- * 		- use sudo rmmod hello-1 to remove it from the kernel.
+ * 		- use modinfo chardev.ko to see the information in it.
+ * 		- use sudo insmod ./chardev.ko to insert it in the kernel.
+ * 		- use sudo rmmod chardev to remove it from the kernel.
  * 		- use cat /proc/modules | head to see if it is loaded.
  * 		- use cat /var/log/kern.log | tail to see how to how to create the devicefile 
  * 		  for example: sudo mknod /dev/chardev c 250 0

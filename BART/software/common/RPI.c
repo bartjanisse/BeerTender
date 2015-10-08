@@ -2,7 +2,6 @@
 #include "RPI.h"
 #include "utils.h"
 
-struct bcm_peripheral gpio = {GPIO_BASE};
 
 // Exposes the physical address defined in the passed structure using mmap on /dev/mem
 int map_peripheral(struct bcm_peripheral *p)
@@ -39,4 +38,3 @@ void unmap_peripheral(struct bcm_peripheral *p)
     munmap(p->map, BLOCK_SIZE);
     close(p->mem_fd);
 }
-
