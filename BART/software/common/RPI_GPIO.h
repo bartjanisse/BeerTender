@@ -16,7 +16,7 @@ extern struct bcm_peripheral gpio;
 #define GPIO_READ(g) 		*(gpio.addr + ((g)/32) + GPLEV0) &= (1 << (g)) // Read GPIO input 0..31, 32..53
 
 //Function prototypes
-int init_gpio();
-void close_gpio();
+int init_gpio(void);
+void close_gpio(void);
 
 #endif 

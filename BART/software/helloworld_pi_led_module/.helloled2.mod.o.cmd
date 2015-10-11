@@ -1,8 +1,9 @@
-cmd_/home/student/bart/programming/school/prt/BeerTender/BART/software/helloblink_pi_module/blink_pi_module.o := /home/student/buildroot_lin_ver/tools-master/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin/arm-bcm2708-linux-gnueabi-gcc -Wp,-MD,/home/student/bart/programming/school/prt/BeerTender/BART/software/helloblink_pi_module/.blink_pi_module.o.d  -nostdinc -isystem /home/student/buildroot_lin_ver/tools-master/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin/../lib/gcc/arm-bcm2708-linux-gnueabi/4.7.1/include -I./arch/arm/include -Iarch/arm/include/generated  -Iinclude -I./arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I./include/uapi -Iinclude/generated/uapi -include ./include/linux/kconfig.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-bcm2709/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -std=gnu89 -fno-dwarf2-cfi-asm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -fno-delete-null-pointer-checks -O2 --param=allow-store-data-races=0 -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-var-tracking-assignments -pg -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -Werror=implicit-int -Werror=strict-prototypes -DCC_HAVE_ASM_GOTO  -DMODULE  -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(blink_pi_module)"  -D"KBUILD_MODNAME=KBUILD_STR(blinkpimodule)" -c -o /home/student/bart/programming/school/prt/BeerTender/BART/software/helloblink_pi_module/.tmp_blink_pi_module.o /home/student/bart/programming/school/prt/BeerTender/BART/software/helloblink_pi_module/blink_pi_module.c
+cmd_/home/student/bart/programming/school/prt/BeerTender/BART/software/helloworld_pi_led_module/helloled2.mod.o := /home/student/buildroot_lin_ver/tools-master/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin/arm-bcm2708-linux-gnueabi-gcc -Wp,-MD,/home/student/bart/programming/school/prt/BeerTender/BART/software/helloworld_pi_led_module/.helloled2.mod.o.d  -nostdinc -isystem /home/student/buildroot_lin_ver/tools-master/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin/../lib/gcc/arm-bcm2708-linux-gnueabi/4.7.1/include -I./arch/arm/include -Iarch/arm/include/generated  -Iinclude -I./arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I./include/uapi -Iinclude/generated/uapi -include ./include/linux/kconfig.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-bcm2709/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -std=gnu89 -fno-dwarf2-cfi-asm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -fno-delete-null-pointer-checks -O2 --param=allow-store-data-races=0 -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-var-tracking-assignments -pg -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -Werror=implicit-int -Werror=strict-prototypes -DCC_HAVE_ASM_GOTO  -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(helloled2.mod)"  -D"KBUILD_MODNAME=KBUILD_STR(helloled2)" -DMODULE  -c -o /home/student/bart/programming/school/prt/BeerTender/BART/software/helloworld_pi_led_module/helloled2.mod.o /home/student/bart/programming/school/prt/BeerTender/BART/software/helloworld_pi_led_module/helloled2.mod.c
 
-source_/home/student/bart/programming/school/prt/BeerTender/BART/software/helloblink_pi_module/blink_pi_module.o := /home/student/bart/programming/school/prt/BeerTender/BART/software/helloblink_pi_module/blink_pi_module.c
+source_/home/student/bart/programming/school/prt/BeerTender/BART/software/helloworld_pi_led_module/helloled2.mod.o := /home/student/bart/programming/school/prt/BeerTender/BART/software/helloworld_pi_led_module/helloled2.mod.c
 
-deps_/home/student/bart/programming/school/prt/BeerTender/BART/software/helloblink_pi_module/blink_pi_module.o := \
+deps_/home/student/bart/programming/school/prt/BeerTender/BART/software/helloworld_pi_led_module/helloled2.mod.o := \
+    $(wildcard include/config/module/unload.h) \
   include/linux/module.h \
     $(wildcard include/config/sysfs.h) \
     $(wildcard include/config/modules.h) \
@@ -15,7 +16,6 @@ deps_/home/student/bart/programming/school/prt/BeerTender/BART/software/hellobli
     $(wildcard include/config/tracing.h) \
     $(wildcard include/config/event/tracing.h) \
     $(wildcard include/config/ftrace/mcount/record.h) \
-    $(wildcard include/config/module/unload.h) \
     $(wildcard include/config/constructors.h) \
     $(wildcard include/config/debug/set/module/ronx.h) \
   include/linux/list.h \
@@ -430,9 +430,9 @@ deps_/home/student/bart/programming/school/prt/BeerTender/BART/software/hellobli
     $(wildcard include/config/have/mod/arch/specific.h) \
     $(wildcard include/config/modules/use/elf/rel.h) \
     $(wildcard include/config/modules/use/elf/rela.h) \
-  include/linux/delay.h \
-  arch/arm/include/asm/delay.h \
+  include/linux/vermagic.h \
+  include/generated/utsrelease.h \
 
-/home/student/bart/programming/school/prt/BeerTender/BART/software/helloblink_pi_module/blink_pi_module.o: $(deps_/home/student/bart/programming/school/prt/BeerTender/BART/software/helloblink_pi_module/blink_pi_module.o)
+/home/student/bart/programming/school/prt/BeerTender/BART/software/helloworld_pi_led_module/helloled2.mod.o: $(deps_/home/student/bart/programming/school/prt/BeerTender/BART/software/helloworld_pi_led_module/helloled2.mod.o)
 
-$(deps_/home/student/bart/programming/school/prt/BeerTender/BART/software/helloblink_pi_module/blink_pi_module.o):
+$(deps_/home/student/bart/programming/school/prt/BeerTender/BART/software/helloworld_pi_led_module/helloled2.mod.o):

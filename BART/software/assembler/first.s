@@ -4,7 +4,7 @@
  * This is a verry simple assemble program. To compile it follow these
  * two steps:
  *
- * $ arm-linux-as first.s -o first.s
+ * $ arm-linux-as first.o -o first.s
  * $ arm-linux-gcc first.s -o first
  *
  * Now you have an executable first. 

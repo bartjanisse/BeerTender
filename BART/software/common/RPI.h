@@ -10,6 +10,7 @@
 #ifndef _RPI_REG_
 #define _RPI_REG_
 
+/*
 #include <stdio.h>
 
 #include <string.h>
@@ -25,7 +26,7 @@
 #include <sys/stat.h>
 
 #include <unistd.h>
-
+*/
 //#include <asm/io.h> // Waar staat deze file ??????
 //#include <mach/platform.h>
 

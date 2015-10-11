@@ -11,3 +11,15 @@ za 26-09-2015		12:00 - 14:00	Lezen in LDD
 
 zo 27-092015		12:00 - 17:00	I2C user space programma
 					20:30 - 22:00
+
+za 03-10-2015		12:00 - 16:00	Cross comileren module hello-1.c. Toolchain inrichten en documenteren hiervan
+					20:00 - 02:00
+zo 04-10-2015		12:00 - 17:00
+					19:30 - 23:00
+ma	05-10-2015	18:30 - 21:00
+
+za 10-10-2015		10:30 - 16:30 	Bezig geweest met het gebruik van asm voor schrijven/lezen registers. Dit levert een Segment fault op 
+					18:00 - 19:30
+
+zo 11-10-2015		12:00 - 17:00	Start nieuwe versie van een Raspberry led module
+					19:00 - 22:00
