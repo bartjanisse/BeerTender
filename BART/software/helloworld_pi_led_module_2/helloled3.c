@@ -117,8 +117,6 @@ void cleanup_module(void)
  */
 static int device_open(struct inode *inode, struct file *file)
 {
-	//int major, minor;
-	
 	if (Device_Open)
 	{
 		return -EBUSY;
@@ -128,11 +126,7 @@ static int device_open(struct inode *inode, struct file *file)
 	
 	/* Initialize the msg */
 	msg_Ptr = msg;
-  
-	//major = imajor(inode);
-	//minor = iminor(inode);
-	//printk("\nSome body is opening me at major %d  minor %d\n", major, minor);
-                
+                 
 	try_module_get(THIS_MODULE);
 	
 	return SUCCESS;
