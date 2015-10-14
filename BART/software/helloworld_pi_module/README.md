@@ -42,12 +42,12 @@ Since we don't want to type the complete paths over and over again we set, for o
 
 On your linux machine invoke the following commands
 ```sh
-$ export CCPREFIX=/home/student/buildroot_lin_ver/tools-master/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin/bcm2708-linux-gnueabi-
+$ export CCPREFIX=~/buildroot_lin_ver/tools-master/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin/arm-bcm2708-linux-gnueabi-
 ```
 ```sh
-$ export KERNEL_SRC=/home/student/buildroot_lin_ver/linux-rpi-3.18.16-v7
+$ export KERNEL_SRC=~/buildroot_lin_ver/linux-rpi-3.18.16-v7
 ```
-##### Step 7. Cleaning up the kernel source tree
+##### Step 6. Cleaning up the kernel source tree
 To ensure you have a clean kernel source tree execute the following
 ```sh
 $ cd KERNEL_SRC
