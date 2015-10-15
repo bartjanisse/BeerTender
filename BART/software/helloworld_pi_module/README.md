@@ -26,7 +26,9 @@ The file we are looking for should be located in the following directory
 
 Next we need to extraxt this file. This can be simply done in the File Manager by right clicking the file and choose 'Extract Here'. 
 
-After this is done you should end up with a folder named `~/buildroot_lin_ver/linux-rpi-3.18.16-v7` in which all the files are extracted. 
+After this is done you should end up with a folder named `~/buildroot_lin_ver/linux-rpi-3.18.y` in which all the files are extracted. 
+
+Since we are going to build for Linux version **3.18.16-v7** we going to rename our folder to `~/buildroot_lin_ver/linux-rpi-3.18.16-v7`
 
 ##### Step 4. Get the tools
 The tools we need can be downloaded from
@@ -50,7 +52,7 @@ $ export KERNEL_SRC=~/buildroot_lin_ver/linux-rpi-3.18.16-v7
 ##### Step 6. Cleaning up the kernel source tree
 To ensure you have a clean kernel source tree execute the following
 ```sh
-$ cd KERNEL_SRC
+$ cd $KERNEL_SRC
 $ make mrproper
 ```
 ##### Step 7. Get the .config file
@@ -69,6 +71,7 @@ $ mv .config $KERNEL_SRC
 ##### Step 8. Rebuilding the kernel
 Building the kernel involves the following two steps
 ```sh
+$ cd $KERNEL_SRC
 $ make ARCH=arm CROSS_COMPILE=${CCPREFIX} oldconfig
 $ make ARCH=arm CROSS_COMPILE=${CCPREFIX}
 ```
@@ -78,7 +81,7 @@ The steps will produce a fresh `Module.symvers' and since you are using the cros
 To compile your kernel module you need a Makefile. The following is an example of this file in where all the above mentioned directories are included.
 ```sh
 CCPREFIX=/home/student/buildroot_lin_ver/tools-master/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin/arm-bcm2708-linux-gnueabi-
-KERNEL_SRC=/home/student/buildroot_lin_ver/linux-rpi-3.18.16-v7
+KERNEL_SRC=/home/student/buildroot_lin_ver/linux-rpi-3.18.y
 
 obj-m += hello-1.o
 
