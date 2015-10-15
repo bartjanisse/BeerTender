@@ -6,7 +6,7 @@ There following things we need for building our kernel.
 -   linux-rpi-3.18.y.tar.gz
 -   tools
 
-Each of those will be descibed in one of the following steps.
+In the following steps will be described where to get these.
 
 ##### Step 1. Find the kernel version
 On the Raspberry Pi invoke the following command:
@@ -60,7 +60,7 @@ Since we want to build the kernel exactly as it was done for the Raspberry Pi we
 ```sh
 $ scp root@192.168.123.42:/proc/config.gz ./
 ```
-you should end up with this file on your Linux machin. Now extract it with
+you should end up with this file on your Linux machine. Now extract it with
 ```sh
 $ zcat config.gz > .config
 ```
