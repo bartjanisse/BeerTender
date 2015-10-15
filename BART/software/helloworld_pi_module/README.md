@@ -1,4 +1,4 @@
-# How to cross compile a module
+# How to cross compile a module for the Raspberry Pi 2
 
 To build modules we need to compile the linux kernel. The kernel we need to compile is the specific one which runs on the Raspberry Pi.
 ## Necessities
