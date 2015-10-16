@@ -81,7 +81,7 @@ The steps will produce a fresh `Module.symvers' and since you are using the cros
 To compile your kernel module you need a Makefile. The following is an example of this file in where all the above mentioned directories are included.
 ```sh
 CCPREFIX=/home/student/buildroot_lin_ver/tools-master/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin/arm-bcm2708-linux-gnueabi-
-KERNEL_SRC=/home/student/buildroot_lin_ver/linux-rpi-3.18.y
+KERNEL_SRC=/home/student/buildroot_lin_ver/linux-rpi-3.18.16-v7
 
 obj-m += hello-1.o
 
