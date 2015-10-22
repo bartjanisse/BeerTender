@@ -1,0 +1,242 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>Pendulum-Cart Control System</title>
+	<link href="Pendulum-Cart%20Control%20System_bestanden/base.css" rel="stylesheet" type="text/css">
+<script src="Pendulum-Cart%20Control%20System_bestanden/jquery-latest.js" type="text/javascript"></script></head>
+
+<!-- The following loads jQuery. -->
+
+
+<body>
+
+
+<form action="PendulumCartAnimation.php" method="post" target="_parent">
+
+  <h1>Pendulum-Cart Control System</h1>
+
+
+  <p>Below are schematics for a controlled pendulum-cart system.  The 
+objective is to design a controller that will move the cart so that 
+inverted pendulum goes to a desired position.  For example, the pendulum
+ might be displaced from equilibrium and the cart will have to move to 
+return the inverted pendulum to vertical (i.e. <i>θ</i> = 0) at the desired horizontal distance <i>X</i>.  <br>
+
+  <table style="border:0" align="center">
+    <tbody>
+      <tr valign="middle">
+	<td rowspan="2" align="center">
+	  <img src="Pendulum-Cart%20Control%20System_bestanden/CartPendulumSchem.jpg"><br>
+	  <font class="label">
+	  <b>Figure 1:</b> Cart-pendulum schematic.</font>
+	</td>
+	<td rowspan="2" align="center">
+	  <img src="Pendulum-Cart%20Control%20System_bestanden/CartPendulumFBD.jpg"><br>
+	  <font class="label">
+	  <b>Figure 2:</b> Free body diagram.</font>
+	</td>
+	<td align="center">
+	  <img src="Pendulum-Cart%20Control%20System_bestanden/CartPendulumMotor.jpg"><br>
+	  <font class="label">
+	  <b>Figure 3:</b> Motor schematic.</font>
+	</td>
+      </tr>
+      <tr valign="middle">
+	<td rowspan="2" align="center" valign="middle">
+	  <font class="label"><b>Table 1:</b> System Parameters.</font>
+	  <table border="1">
+	  <tbody>
+	    <tr>
+	      <td> <b>Parameter</b> </td>
+	      <td> <b>Value</b> </td>
+	      <td> <b>Description</b> </td>
+	    </tr>
+	    <tr>
+	      <td> <i>M</i> </td>
+	      <td> 455 g </td>
+	      <td> cart mass </td>
+	    </tr>
+	    <tr>
+	      <td> <i>m</i> </td>
+	      <td> 230 g </td>
+	      <td> pendulum mass </td>
+	    </tr>
+	    <tr>
+	      <td> <i>L</i> </td>
+	      <td> 64.1 cm </td>
+	      <td> pendulum length </td>
+	    </tr>
+	    <tr>
+	      <td> <i>r</i> </td>
+	      <td> 6.35 mm </td>
+	      <td> wheel radius </td>
+	    </tr>
+	    <tr>
+	      <td> <i>R<sub>m</sub></i> </td>
+	      <td> 2.6 Ω </td>
+	      <td> motor resistance </td>
+	    </tr>
+	    <tr>
+	      <td> 
+		<i>K<sub>g</sub></i> = 
+		<i>N</i><sub>2</sub>/<i>N</i><sub>1</sub> 
+	      </td>
+	      <td> 3.7 </td>
+	      <td> gear ratio </td>
+	    </tr>
+	    <tr>
+	      <td valign="top">
+	      <i>K<sub>m</sub></i> 
+	      </td>
+	      <td> 0.00767 N-m/Amp <br> or V-sec/rad </td>
+	      <td valign="top"> motor constant </td>
+	    </tr>
+	  </tbody>
+          </table>
+        </td>
+      </tr>
+      <tr align="center">
+	<td colspan="2">
+	  <img src="Pendulum-Cart%20Control%20System_bestanden/CartPendulumBlockDiag.jpg"><br>
+	  <font class="label">
+	  <b>Figure 4:</b> Block diagram of ideal model of control system. 
+	  </font>
+	</td>
+      </tr>
+</tbody>
+</table>
+
+<br>
+
+The force, <i>F</i>(<i>t</i>), that moves the cart results from a motor 
+that drives one of the wheels of the cart.  The force is related to the 
+motor torque, <i>T</i>(<i>t</i>), through the radius of the wheel, <i>r</i>,</p>
+
+<p align="center"><i>F</i>(<i>t</i>) = <i>T</i>(<i>t</i>)/<i>r</i>, </p>
+
+<p>and motor torque can be related to the motor current, <i>i<sub>m</sub></i>(<i>t</i>), through the motor constant, <i>K<sub>m</sub></i>, and motor gear ratio, <i>K<sub>g</sub></i>,</p>
+
+<p align="center"><i>T</i>(<i>t</i>) = <i>K<sub>m</sub> K<sub>g</sub> i<sub>m</sub></i>(<i>t</i>). </p>
+
+<p>Kirchoff's Voltage Law can be used to determine the motor current in terms of the controlled input voltage, <i>V</i>(<i>t</i>), and the cart velocity,   <i>dX/dt</i> = <i>v</i>(<i>t</i>).
+  The equations of motion for the inverted pendulum and the cart can be 
+derived using kinematics or a Lagrangian method.  Note that there are 
+only 2 independent generalized coordinates.  If the cart position, <i>X</i>, and the pendulum angle, <i>θ</i>, are chosen as generalized coordinates, the constaint equations are</p>
+
+<p align="center"><i>x<sub>p</sub></i> = <i>X</i> + <i>x</i> = <i>X</i> - (<i>L</i>/2) sin <i>θ</i></p>
+
+<p>and</p>
+
+<p align="center"><i>y<sub>p</sub></i> = (<i>L</i>/2) cos <i>θ</i>,</p>
+
+<p>where <i>x<sub>p</sub></i> and <i>y<sub>p</sub></i> are the global coordinates of the center of mass of the inverted pendulum measured from a fixed point in space.</p>
+
+
+<p>The real cart-pendulum system runs on a track that is approximately 2
+ meters in length.  Therefore the cart is limited to travel within these
+ 2 meters.  It begins in a vertical position at the center of the track.
+  The motor that drives the cart is limited a voltage input of within ±6
+ Volts.  If the controller requests a voltage exceeding the motor 
+limits, the voltage will saturate to ±6 Volts.  Therefore in a more 
+accurate block diagram would include a saturation block between the 
+controller gain and state-space model.  Two control scenarios can be 
+animated below.  The first (<font class="label"><b>Scenario 1</b></font>)
+ is simply the inverted pendulum displaced from vertical by some initial
+ angle.  The controller moves the cart to try to compensate and return 
+the pendulum to vertical at the initial horizontal position at the 
+center of the track.  The second scenario (<b><font class="label">Scenario 2</font></b>)
+ involves moving the inverted pendulum left and right along the track 
+0.3 meters from center.  This is accomplished by using a square wave 
+input of an amplitude of 0.3 meters and period of 10 seconds as the 
+desired position of the cart, <i>X<sub>d</sub></i>, and angle of 0 radians as the desired displacement from vertical of the inverted pendulum,   <i><i>θ</i><sub>d</sub></i>.  The desired translational and rotational velocities, <i>v<sub>d</sub></i> and <i>ω<sub>d</sub></i>,
+ would be 0 m/sec and 0 rad/sec, respectively.  When designing the 
+controller care must be take to make sure the gains do not result in 
+voltage that exceeds the motor rating for too long because this could 
+make the system unstable.</p>
+
+
+<p>Specify your controller gains and choose the scenario you wish to animate.  If you choose to animate <font class="label"><b>Scenario 1</b></font>, you must specify the initial angular displacement, <i>θ</i>(0), of the inverted pendulum from vertical. The Octave script assumes an initial angle of <i>θ</i>(0)=0 rad if <b><font class="label">Scenario 2</font></b>
+ is chosen.  Note that because of the track and motor constraints, it 
+will be difficult to design a controller than can stabilize the response
+ for an initial angle, <i>θ</i>(0), exceeding ±<em>π</em>/6 rad (or ±30°). Thus the Octave script limits the initial angle input to within ±<em>π</em>/6 rad (or ±30°).  <font color="red">NOTE: The initial angle can be specified as a number or as some multiple of π (e.g. 3*pi/4, pi/2, pi/4, or 2*pi).  If animating <font class="label"><b>Scenario 1</b></font>,
+ be sure to use an initial angle of something other than 0.  Care must 
+be taken to use proper Octave syntax when specifying the initial angle 
+otherwise the animation will fail to generate. </font></p>
+
+
+<p><font color="red">Note that the server must simulate the response, 
+generate the frames, and compose the video.  This could take more than 
+30 seconds.  Please be patient.</font></p>
+
+
+<center>
+<font class="label"><b>Select controller and specify gains:</b></font><br>
+
+<table border="1" cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <td>
+	<input checked="checked" name="ControlChoice" value="Default" type="radio">
+      </td>
+      <td>Default Controller</td>
+    </tr>
+    <tr>
+      <td>
+        <input name="ControlChoice" value="State Feedback" type="radio">
+      </td>
+      <td>
+	<b>K</b> = [<i>k</i><sub>1</sub> <i>k</i><sub>2</sub>
+	<i>k</i><sub>3</sub> <i>k</i><sub>4</sub>] = [
+	<input name="k1" maxlength="5" size="3" value="0" type="text">(V/m)&nbsp;
+	<input name="k2" maxlength="5" size="3" value="0" type="text">(V/rad)&nbsp;
+	<input name="k3" maxlength="5" size="3" value="0" type="text">(V-s/m)&nbsp;
+	<input name="k4" maxlength="5" size="3" value="0" type="text">(V-s/rad)]
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+
+<font class="label"><b>Select scenario and specify initial condition:</b></font><br>
+
+<table border="1" cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <td>
+	<input checked="checked" value="Scenario 1" name="ScenarioChoice" type="radio">
+      </td>
+      <td>
+	<font class="label"><b>Scenario 1:</b></font>
+	<i>θ</i>(0) = 
+	<input name="InitialAngle" maxlength="10" size="5" value="pi/12" type="text">(rad) <font color="red">limit to
+	within ±<i>π</i>/6 rad</font><br>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <input value="Scenario 2" name="ScenarioChoice" type="radio">
+      </td>
+      <td>
+	<font class="label"><b>Scenario 2</b></font>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<br>
+
+<p align="center">
+<input value="Generate Animation" name="SimulationButton" type="submit">
+</p>
+
+
+
+</center></form>
+
+<hr>
+<div id="footer"><p id="Footer">© 2013 by Javier A. Kypuros, Ph.D.  All rights reserved. <br>This site is maintained by <a href="mailto:jakypuros@utpa.edu?Subject=Virtual%20Systems%20Library" target="_top">Javier A. Kypuros, Ph.D.</a><br><a href="http://www.utpa.edu/policies/DMCA/">DMCA Notice</a></p></div>
+
+
+
+
+</body></html>

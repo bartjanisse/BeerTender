@@ -1,0 +1,201 @@
+html {background-color:#fff; }
+
+/* Headings formatting */
+h1,h2,h3,h4 { 
+	font-family: Century Gothic, sans-serif; 
+	font-style: normal; 
+	font-weight: lighter; 
+	}
+h1 { 
+	font-size: 24px; 
+	border-bottom: 1px solid #999; 
+	color: #000
+	}
+h2 { 
+	font-size: 20px;
+	border-top: 1px solid #999;
+	}
+h3 { 
+	font-size: 18px; 
+	margin: 0px; padding: 0px;
+	}
+h4 { 
+	font-size: 16px; 
+	}
+
+/* Paragraph formatting */
+p,body { 
+	margin-bottom: 14px; 
+	color: rgb(102, 102, 102);
+	font-family: 'Palatino Linotype', 'Times New Roman'; 
+	font-size: 16px;
+	}
+blockquote {
+	position: relative; 
+	left: 1em;
+	font-family: 'Palatino Linotype', 'Times New Roman'; 
+	font-style: italic;
+	font-size: 14px;
+	color: #000;
+}
+p.caption {
+	text-align: center;
+	}
+
+/* Image formatting */
+img.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Code Citation Formatting */
+code {
+	font-family: courier;
+	font-size: 16px;
+	color: #0000FF;
+	background-color: #C8C8C8;
+	}
+
+/* Formatting for links */
+a { color: #5E922B; }
+a:link, a:visited, a:active { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.box{
+    display: none;
+    width: 100%; 
+}
+
+a:hover + .box,.box:hover{
+    display: block;
+    position: relative;
+    z-index: 100; 
+}
+
+/* Body formatting */
+body { 
+	background:#fff;
+	min-height:100%; 
+	width:900px; 
+	margin:0px auto; 
+	padding:0 70px; 
+	position:relative; 
+	z-index:1; 
+	overflow-x:hidden; 
+	overflow-y:auto; 
+	*overflow-y:visible; }
+
+/* Extra formatting */
+.left { 
+	float: left; 
+	margin-left: 0px; 
+	margin-right: 10px; 
+	}
+
+/* show_hide formatting */
+
+/* List formatting */
+ul,ol { 
+	font-family: 'Palatino Linotype', 'Times New Roman'; 
+	font-size: 16px; 
+	color: rgb(102, 102, 102); 
+	}
+
+/* Table formatting */
+table { 
+	/*width: 100%; */
+	float: center;
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px solid #999; 
+	border-collapse: collapse;
+	}
+th { 
+	text-align: center; 
+	font-family: Century Gothic, sans-serif; 
+	font-weight: lighter; 
+	font-size: 14 px; 
+	/*border: 1px solid #999;*/
+	padding: 5px;
+	}
+td { 
+	text-align: left; 
+	font-family: 'Palatino Linotype', 'Times New Roman'; 
+	font-size: 16px; color: rgb(102, 102, 102); 
+	/*border: 1px solid #999;*/
+	padding: 5px;
+	}
+	
+/* Two-Column Formatting */
+#TwoColumn
+{
+	font-family: 'Palatino Linotype', 'Times New Roman';
+	font-size: 16px; color: rgb(102, 102, 102);
+	-moz-column-count:2; /* Firefox */
+	-webkit-column-count:2; /* Safari and Chrome */
+	column-count:2;
+	-moz-column-gap:40px; /* Firefox */
+	-webkit-column-gap:40px; /* Safari and Chrome */
+	column-gap:40px;
+}
+
+/* Footer Formmatting */
+#Footer
+{
+	font-family: Century Gothic, sans-serif;
+	font-size: 12px;
+	text-align: center;
+}
+
+#loading {
+  width: 100%;
+  height: 100%;
+  top: 0px;
+  left: 0px;
+  position: fixed;
+  display: block;
+  opacity: 0.7;
+  background-color: #fff;
+  z-index: 99;
+  text-align: center;
+}
+
+#loader {
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: 9999;
+	background: url('images/page-loader.gif') 50% 50% no-repeat rgb(249,249,249);
+}
+
+/* The following was taken from Excercise.css */
+td.upper_line {
+	border-top:solid 1px black; 
+	padding:2px;
+}
+
+table.fraction { 
+	display: inline-table;
+	text-align: center; 
+	font-family: "Times New Roman", Times;
+	font-size: 12pt;
+}
+
+#loading-image {
+  position: absolute;
+  top: 100px;
+  left: 240px;
+  z-index: 100;
+}
+
+.hidden {
+display:none;
+}
+
+.visible {
+display:block;
+position:absolute;
+top:0;left:0;
+}
