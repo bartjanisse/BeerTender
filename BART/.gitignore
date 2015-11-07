@@ -6,9 +6,14 @@
 *.ko
 *.mod.c
 *.mod.o
+<<<<<<< HEAD
+=======
+*.tar
+>>>>>>> bj_sprint_2
 /*.patch
 /*.diff
 *.orig
 *.rej
 *~
 *.pyc
+

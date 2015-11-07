@@ -1,6 +1,6 @@
 
 #include "RPI.h"
-#include "utils.h"
+//#include "utils.h"
 
 
 // Exposes the physical address defined in the passed structure using mmap on /dev/mem
@@ -9,13 +9,13 @@ int map_peripheral(struct bcm_peripheral *p)
 	// Open /dev/mem
 	if ((p->mem_fd = open("/dev/mem", O_RDWR|O_SYNC) ) < 0) 
 	{
-		P_ERR("Failed to open /dev/mem, try checking permissions.");
+		//P_ERR("Failed to open /dev/mem, try checking permissions.");
 		return (-1);
 	}
 
 	p->map = mmap(
 		NULL,
-		BLOCK_SIZE,
+		B_SIZE,
 		PROT_READ|PROT_WRITE,
 		MAP_SHARED,
 		p->mem_fd,  		// File descriptor to physical memory virtual file '/dev/mem'
@@ -24,7 +24,7 @@ int map_peripheral(struct bcm_peripheral *p)
 
 	if (p->map == MAP_FAILED) 
 	{
-		P_ERR("mmap failed");
+		//P_ERR("mmap failed");
         return (-1);
 	}
 
@@ -35,6 +35,6 @@ int map_peripheral(struct bcm_peripheral *p)
 
 void unmap_peripheral(struct bcm_peripheral *p) 
 {
-    munmap(p->map, BLOCK_SIZE);
+    munmap(p->map, B_SIZE);
     close(p->mem_fd);
 }

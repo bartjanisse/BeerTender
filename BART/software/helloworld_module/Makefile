@@ -13,6 +13,9 @@ all:
 clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 
-pi:	CC=arm-linux-gcc
-pi:	all
+#pi:	CC=arm-linux-gcc
+#pi:	all
+pi:	
+	CC=arm-linux-gcc
+	make -C /usr/src/linux M=$(PWD) modules
 	

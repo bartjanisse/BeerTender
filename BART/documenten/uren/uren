@@ -5,3 +5,24 @@ za 12-09-2015		12:00 - 13:30 	Materiaal uitzoeken wat redelijk snel leverbaar is
 
 zo 13-09-2015		10:00 - 11:00	blinkled gemaakt
 					11:00 - 	17:00	Buildroot werkt niet bij Jeroen. Uitzoenen hoe dat kan.
+
+za 26-09-2015		12:00 - 14:00	Lezen in LDD
+					14:00 - 16:00 	I2C user space programma
+
+zo 27-092015		12:00 - 17:00	I2C user space programma
+					20:30 - 22:00
+
+za 03-10-2015		12:00 - 16:00	Cross comileren module hello-1.c. Toolchain inrichten en documenteren hiervan
+					20:00 - 02:00
+zo 04-10-2015		12:00 - 17:00
+					19:30 - 23:00
+ma	05-10-2015	18:30 - 21:00
+
+za 10-10-2015		10:30 - 16:30 	Bezig geweest met het gebruik van asm voor schrijven/lezen registers. Dit levert een Segment fault op 
+					18:00 - 19:30
+
+zo 11-10-2015		12:00 - 17:00	Start nieuwe versie van een Raspberry led module
+					19:00 - 22:00
+
+ma 12-11-2015	20:00 - 23:00	Nieuwe opgeschoonde versie van de helloled3 module + blink. Helloled3 is een opgeschoonde versie van helloled2.
+									
