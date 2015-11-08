@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# Script for int1 module
+#
+case "$1" in
+  start)
+ 	echo $'Module loaded...\n'
+	insmod /bin/int1.ko
+	;;
+  stop)
+	echo -n $'Module stopped...\n'
+	rmmod int1
+	;;
+  info)
+	cat /var/log/messages | tail -20
+	;;
+  restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|info|restart}"
+	exit 1
+esac
+
+exit $?
