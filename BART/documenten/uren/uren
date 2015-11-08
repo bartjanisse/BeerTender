@@ -26,3 +26,5 @@ zo 11-10-2015		12:00 - 17:00	Start nieuwe versie van een Raspberry led module
 
 ma 12-10-2015	20:00 - 23:00	Nieuwe opgeschoonde versie van de helloled3 module + blink. Helloled3 is een opgeschoonde versie van helloled2.
 									
+zo 08-11-2015		10:00 -16:00	Gestart met interrupts. Int1 module gereed, gestart met int2 module
+					19:20-22:00
