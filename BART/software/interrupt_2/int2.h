@@ -12,10 +12,7 @@
 #define GPIO_INPUT		23			/* GPIO 23 is connected to pen 16 of the Raspberry connector */
 
 // text below will be seen in 'cat /proc/interrupts' command
-#define GPIO_ANY_GPIO_DESC           "MyInterrupt"
-// below is optional, used in more complex code, in our case, this could be
-// NULL
-#define GPIO_ANY_GPIO_DEVICE_DESC    "mydevice"
+#define GPIO_ANY_GPIO_DESC           "GPIO interrupt"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("A.W. Janisse");

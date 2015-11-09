@@ -1,14 +1,15 @@
 /*
- * 11-10-2015 - Bart Janisse
+ * 09-11-2015 - Bart Janisse
  * 
- * int2.c: Creates a module to demonstrate basic interrupt handling.
- * 
+ * int2.c: Creates a module to demonstrate interrupt handling of a GPIO
+ * output. This module generates an interrupt when the LED output is
+ * switched high. As a result of this a message will be written.
  * 
  * notes:
  * 		- use make to build this module.
  * 		- use make install to copy the following files to the Pi /bin directory:
- * 			o  helloled3.ko		The module.
- * 			o  led				See below fo an explanation.
+ * 			o  int2.ko		The module.
+ * 			o  int2			Shell script. See below fo an explanation.
  * 
  * 		- You can use the script led with the following command params:
  * 			o  start:  	This loads the module and creates the appropiate 
@@ -72,22 +73,7 @@ static irqreturn_t r_irq_handler(int irq, void *dev_id, struct pt_regs *regs)
 	local_irq_save(flags);
 
 	printk(KERN_NOTICE "Interrupt [%d] for device %s was triggered !\n", irq, (char *) dev_id);
-/*
-	if (GPIO_READ(GPIO_INPUT))
-	{
-		printk(KERN_NOTICE "Interrupt [%d] for device %s was triggered !\n", irq, (char *) dev_id);
-	}
 
-	// Toggle LED
-	if (GPIO_READ(GPIO_LED))
-	{
-		GPIO_CLR(GPIO_LED);
-	}
-	else
-	{
-		GPIO_SET(GPIO_LED);
-	}
-*/
 	// restore hard interrupts
 	local_irq_restore(flags);
 
@@ -99,7 +85,6 @@ static irqreturn_t r_irq_handler(int irq, void *dev_id, struct pt_regs *regs)
  */
 void interrupt_config(void) 
 {
-	//GPIO_INPUT
 	if ( (irq_number = gpio_to_irq(GPIO_LED)) < 0 ) 
 	{
 		printk("GPIO to IRQ mapping failure %s\n", GPIO_ANY_GPIO_DESC);
@@ -109,7 +94,7 @@ void interrupt_config(void)
 	printk(KERN_NOTICE "Mapped int %d\n", irq_number);
 	
 	//see ../include/linux/interrupt.h
-	if (request_irq(irq_number, (irq_handler_t ) r_irq_handler, IRQF_TRIGGER_RISING, GPIO_ANY_GPIO_DESC, GPIO_ANY_GPIO_DEVICE_DESC)) 
+	if (request_irq(irq_number, (irq_handler_t ) r_irq_handler, IRQF_TRIGGER_RISING, GPIO_ANY_GPIO_DESC, DEVICE_NAME)) 
 	{
 		printk("Irq Request failure\n");
 		return;
@@ -123,7 +108,7 @@ void interrupt_config(void)
  */
 void interrupt_release(void) 
 {
-	free_irq(irq_number, GPIO_ANY_GPIO_DEVICE_DESC);
+	free_irq(irq_number, DEVICE_NAME);
 
 	return;
 }
@@ -155,15 +140,11 @@ int init_module(void)
 	printk(KERN_INFO "the device file.\n");
 	printk(KERN_INFO "Remove the device file and module when done.\n");
     
-	// $ cat /proc/iomem reports the following addresses:
-	// 		3f200000-3f200fff : bcm2708_gpio (this 0xFFF or 4096 registers)
 	gpio = (volatile unsigned int *)ioremap(GPIO_BASE, 4096);
 	
 	// Set pin directions for the LED
 	INP_GPIO(GPIO_LED);
 	OUT_GPIO(GPIO_LED);
-	// Set pin directions for the IN
-	INP_GPIO(GPIO_INPUT);
  
 	interrupt_config();
     
