@@ -32,7 +32,7 @@
 
 
 #include "RPI.h"
-#include "pwm1.h"
+#include "pwm2.h"
 
 /** 
  * Global variables are declared as static, so are global within the file. 
@@ -76,7 +76,7 @@ static irqreturn_t r_irq_handler(int irq, void *dev_id, struct pt_regs *regs)
 
 
 	// Toggle LED
-	if (GPIO_READ(GPIO_PWM0))
+	if (GPIO_READ(GPIO_PWM1))
 	{
 		GPIO_SET(GPIO_LED);
 	}
@@ -98,7 +98,7 @@ static irqreturn_t r_irq_handler(int irq, void *dev_id, struct pt_regs *regs)
 void interrupt_config(void) 
 {
 	//GPIO_LED
-	if ( (irq_number = gpio_to_irq(GPIO_PWM0)) < 0 ) 
+	if ( (irq_number = gpio_to_irq(GPIO_PWM1)) < 0 ) 
 	{
 		printk("GPIO to IRQ mapping failure %s\n", GPIO_ANY_GPIO_DESC);
 		return;
@@ -145,7 +145,7 @@ void setServo(int percent)
 		bits |= 1;
 		bitCount--;
 	}
-	*(pwm + PWM_DAT1) = bits;
+	*(pwm + PWM_DAT2) = bits;
 }
 
 /** 
@@ -173,9 +173,9 @@ int init_module(void)
 	printk(KERN_INFO "the device file.\n");
 	printk(KERN_INFO "Remove the device file and module when done.\n");
     
-	gpio = (volatile unsigned int *)ioremap(GPIO_BASE,  4096);
-	pwm  = (volatile unsigned int *)ioremap(PWM_BASE,   4096);
-	clk  = (volatile unsigned int *)ioremap(CLOCK_BASE, 4096);
+	gpio = (volatile unsigned int *)ioremap(GPIO_BASE,  1024);
+	pwm  = (volatile unsigned int *)ioremap(PWM_BASE,   1024);
+	clk  = (volatile unsigned int *)ioremap(CLOCK_BASE, 1024);
 	
 	// Set pin directions for the LED
 	INP_GPIO(GPIO_LED);
@@ -183,7 +183,7 @@ int init_module(void)
 	
 //---- PWM 1
 	
-	SET_GPIO_ALT(GPIO_PWM0, GPIO_ALT);
+	SET_GPIO_ALT(GPIO_PWM1, GPIO_ALT);
 	
 	// stop clock and waiting for busy flag doesn't work, so kill clock
 	*(clk + PWMCLK_CNTL) = 0x5A000000 | (1 << 5);
@@ -202,13 +202,13 @@ int init_module(void)
 	udelay(10);  
 	
 	// filled with 0 for 20 milliseconds = 320 bits
-	*(pwm + PWM_RNG1) = 320;
+	*(pwm + PWM_RNG2) = 320;
 	
 	// 32 bits = 2 milliseconds, init with 1 millisecond
 	setServo(50);
 	
-	// start PWM1 
-	*(pwm + PWM_CTL) = PWM_CTL_MODE1 | PWM_CTL_PWEN1 | PWM_CTL_MSEN1;
+	// start PWM 
+	*(pwm + PWM_CTL) = PWM_CTL_MODE2 | PWM_CTL_PWEN2 | PWM_CTL_MSEN2;
 
 	interrupt_config();
     
