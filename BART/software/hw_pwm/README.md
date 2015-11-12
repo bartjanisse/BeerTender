@@ -3,7 +3,7 @@ The BCM_2835 manual has a table on page 140 which specifies the GPIO assignment 
 we cannot fully trust that this information is also applicable for the BCM2836 (Pi2) i have tested all posibilities from
 this table to see if the pwm is working or not. For these tests two modules pwm_1 and pwm_2 were used and can be found above. 
 
-The table below show an overview of test results.
+The table below shows the test results.
 
 | GPIO    | PWM0      | PWM1      |  Working Y/N |
 | :------ |:---------:|:----------|:------------:|
