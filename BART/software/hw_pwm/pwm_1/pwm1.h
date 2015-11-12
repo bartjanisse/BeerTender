@@ -14,8 +14,8 @@ MODULE_DESCRIPTION("PWM channel 1 and 2 proof of concept");
 #define SUCCESS 		0
 #define GPIO_LED		14			/* GPIO 14 is connected to pen 8 of the Raspberry connector */
 #define GPIO_INPUT		23			/* GPIO 23 is connected to pen 16 of the Raspberry connector */
-#define GPIO_PWM0		52 //12 			// Alleen 12 en 18 werken
-#define GPIO_ALT		1 //0
+#define GPIO_PWM0		12 			
+#define GPIO_ALT		0
 
 // text below will be seen in 'cat /proc/interrupts' command
 #define GPIO_ANY_GPIO_DESC           "PWM channel 0 int"

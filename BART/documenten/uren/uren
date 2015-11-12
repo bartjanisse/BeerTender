@@ -31,3 +31,5 @@ zo 08-11-2015		10:00 -16:00	Gestart met interrupts. Int1 module gereed, gestart 
 
 ma 09-11-2015	19:30 - 21:30	Gestart met hardware PWM
 di 10-11-2015		20:00 - 22:40
+wo 11-11-205		20:00 - 22:30	Beide hw pwm's werkend gekregen
+do 12-11-2015		20:30 - 22:30 	Begonnen met uitzoeken hoe de pwm clock nu precies werkt zodat we een juiste frequentie kunnen gaan gebruiken.

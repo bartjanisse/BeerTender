@@ -189,7 +189,7 @@ int init_module(void)
 	*(clk + PWMCLK_CNTL) = 0x5A000000 | (1 << 5);
 	udelay(10);  
 	
-	idiv = (int) (19200000.0f / 16000.0f);
+	idiv = (int) (19200000.0f / 16000.0f); // =1200
 	*(clk + PWMCLK_DIV)  = 0x5A000000 | (idiv<<12);	
 	
 	// source=osc and enable clock
