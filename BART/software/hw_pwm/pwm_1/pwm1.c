@@ -186,14 +186,14 @@ int init_module(void)
 	SET_GPIO_ALT(GPIO_PWM0, GPIO_ALT);
 	
 	// stop clock and waiting for busy flag doesn't work, so kill clock
-	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_KILL; //0x5A000000 | (1 << 5);
+	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_KILL; 
 	udelay(10);  
 	
 	idiv = (int) (19200000.0f / 16000.0f);
-	*(clk + CLK_DIV)  = CLK_PASSWD | CLK_DIV_DIVI(idiv); //0x5A000000 | (idiv<<12);	
+	*(clk + CLK_DIV)  = CLK_PASSWD | CLK_DIV_DIVI(idiv); 
 	
 	// source=osc and enable clock
-	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_ENAB | CLK_CTL_SRC(CLK_CTL_SRC_OSC); //0x5A000011;
+	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_ENAB | CLK_CTL_SRC(CLK_CTL_SRC_OSC); 
 
 	// disable PWM
 	*(pwm + PWM_CTL) = 0;
@@ -205,11 +205,10 @@ int init_module(void)
 	*(pwm + PWM_RNG1) = 320;
 	
 	// 32 bits = 2 milliseconds, init with 1 millisecond
-	setServo(50);
+	setServo(0);
 	
 	// start PWM1 
-	*(pwm + PWM_CTL) = PWM_CTL_MODE1 | PWM_CTL_PWEN1 | PWM_CTL_MSEN1;
-
+	*(pwm + PWM_CTL) = PWM_CTL_MSEN1 | PWM_CTL_MODE1 | PWM_CTL_PWEN1;
 	interrupt_config();
     
 	return SUCCESS;
