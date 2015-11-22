@@ -26,3 +26,15 @@ zo 11-10-2015		12:00 - 17:00	Start nieuwe versie van een Raspberry led module
 
 ma 12-10-2015	20:00 - 23:00	Nieuwe opgeschoonde versie van de helloled3 module + blink. Helloled3 is een opgeschoonde versie van helloled2.
 									
+zo 08-11-2015		10:00 -16:00	Gestart met interrupts. Int1 module gereed, gestart met int2 module
+					19:20 - 22:00
+
+ma 09-11-2015	19:30 - 21:30	Gestart met hardware PWM
+di 10-11-2015		20:00 - 22:40
+
+wo 11-11-205		20:00 - 22:30	Beide hw pwm's werkend gekregen
+
+do 12-11-2015		20:30 - 22:30 	Begonnen met uitzoeken hoe de pwm clock nu precies werkt zodat we een juiste frequentie kunnen gaan gebruiken.
+
+za	21-11-2015	13:00 - 16:00	Testopstelling gemaakt met servo motor en, pi en de Logicport
+zo	22-11-2015	11:00 - 	20:00	PWM_1 en PWM_2 opgeschoond en verder uitgebreid zodat de dutycycle naar de device file geschreven kan worden. PWM clock verder uitgezocht en gedocumenteerd.		
