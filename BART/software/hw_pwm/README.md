@@ -1,48 +1,3 @@
-## PWM modes
-The PWM controller consists of two independent channels implementing the pwm algorithm. Each channel can operate in either pwm
-mode or serialiser mode. In PWM mode there are two sub-modes. All three modes are explained below.
-
-Configuring can be done by setting the relevant bits in the PWM control register. The table below shows how this
-can be done.
-
-|               | MODEi | MSENi |
-|:--------------|:-----:|:-----:|
-| Serialiser    |   1   |   x   |
-| Dutycycle M/N |   0   |   0   |
-| Dutycycle M/S |   0   |   1   |
-
-
-### PWM serialiser mode ====> ja
-In this mode the PWM always uses PWM_DATi or FIFO to serial sends its data.  
-
-???????????????????????????????????????????????
-???????????????????????????????????????????????
-???????????????????????????????????????????????
-???????????????????????????????????????????????
-
-
-### PWM dutycycle M/N mode
-
-
-    +-------+                     +---
-    |       |                     |
- ---+       +---------------------+
-    |<- M ->|<-------- N -------->|
-
-
-### PWM dutycycle M/S mode ====> ja
-
-
-    +-------+                     +---
-    |       |                     |
- ---+       +---------------------+
-    |<- M ->|
-    |<------------ S ------------>|
-    
-    
-
-
-
 ## Controlling servo's
 A hobby servo motor works with variable pulses at a fixed cycle of 20ms. If the puls length
 is varried, the angle of the servo motor shaft varries accordingly. Common for these type of
@@ -63,8 +18,8 @@ M = 1.5ms =>  90 degrees
 M = 1.0ms =>   0 degrees
 ```
 ###Setting up the PWM
-The dutycycle for the PWM is managed the registers PWM_RNGi and PWM_DATi. PWM_RNGi is responsible
-for the complete cycle time S and PWM_DATi is responsible for the pulstime M. The dutycycle ca
+The dutycycle for the PWM is managed by the PWM_RNGi and PWM_DATi registers. PWM_RNGi is responsible
+for the complete cycle time S and PWM_DATi is responsible for the pulstime M. The dutycycle can
 be easily calculated with:
 ```
           PWM_DATi
