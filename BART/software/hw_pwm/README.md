@@ -5,6 +5,8 @@ servos is that the puls length can be varried from 1ms to 2 ms. When pulses of 1
 given the servo shaft will be positioned at 0 degrees and when pulses of 2ms are given the servo 
 shaft will be positioned to a 180 degrees. See te diagram below for clarification.
 
+![alt text](https://github.com/bartjanisse/BeerTender/blob/master/BART/software/hw_pwm/images/Servo.jpg "Servo")
+
 ```
     +-------+                     +---
     |       |                     |
