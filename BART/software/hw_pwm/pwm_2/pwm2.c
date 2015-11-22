@@ -49,7 +49,6 @@ static char *msg_Ptr;
  * the devices table, it can't be local to init_module.  
  */ 
 static struct file_operations fops = {
-        .read    = device_read,
         .write   = device_write,
         .open    = device_open,
         .release = device_release,
@@ -72,19 +71,15 @@ static irqreturn_t r_irq_handler(int irq, void *dev_id, struct pt_regs *regs)
 	// disable hard interrupts (remember them in flag 'flags')
 	local_irq_save(flags);
 
-	//printk(KERN_NOTICE "Interrupt [%d] for device %s was triggered !\n", irq, (char *) dev_id);
-
-
-	// Toggle LED
+	// Set output
 	if (GPIO_READ(GPIO_PWM1))
 	{
-		GPIO_SET(GPIO_LED);
+		GPIO_SET(GPIO_OUTP);
 	}
 	else
 	{
-		GPIO_CLR(GPIO_LED);
+		GPIO_CLR(GPIO_OUTP);
 	}
-
 
 	// restore hard interrupts
 	local_irq_restore(flags);
@@ -132,20 +127,14 @@ void interrupt_release(void)
 
 void setServo(int percent)
 {
-	int bitCount;
-	unsigned int bits = 0;
+	unsigned dat = 0;
 
-	// 32 bits = 2 milliseconds
-	bitCount = 16 + 16 * percent / 100;
-	if (bitCount > 32) bitCount = 32;
-	if (bitCount < 1) bitCount = 1;
-	bits = 0;
-	while (bitCount) {
-		bits <<= 1;
-		bits |= 1;
-		bitCount--;
-	}
-	*(pwm + PWM_DAT2) = bits;
+	printk(KERN_INFO "Servo speed is set to %d\n", percent);
+
+	dat = 200 + 200 * percent / 100;
+	if (dat > 400) dat = 400;
+	if (dat < 200) dat = 200;
+	*(pwm + PWM_DAT2) = dat;
 }
 
 /** 
@@ -156,8 +145,6 @@ void setServo(int percent)
  */
 int init_module(void)
 {
-	int idiv;
-	
 	Major = register_chrdev(0, DEVICE_NAME, &fops);
 	if (Major < 0) 
 	{
@@ -169,7 +156,7 @@ int init_module(void)
 	printk(KERN_INFO "the driver, create a device file with\n");
         
 	printk(KERN_INFO "'mknod /dev/%s c %d 0'.\n", DEVICE_NAME, Major);
-	printk(KERN_INFO "Try various minor numbers. Try to cat and echo to\n");
+	printk(KERN_INFO "Try various minor numbers. Try to echo to\n");
 	printk(KERN_INFO "the device file.\n");
 	printk(KERN_INFO "Remove the device file and module when done.\n");
     
@@ -177,39 +164,39 @@ int init_module(void)
 	pwm  = (volatile unsigned int *)ioremap(PWM_BASE,   1024);
 	clk  = (volatile unsigned int *)ioremap(CLOCK_BASE, 1024);
 	
-	// Set pin directions for the LED
-	INP_GPIO(GPIO_LED);
-	OUT_GPIO(GPIO_LED);
+	// Set pin directions for the output
+	INP_GPIO(GPIO_OUTP);
+	OUT_GPIO(GPIO_OUTP);
 	
-//---- PWM 1
+	// PWM and clock settings 
 	
 	SET_GPIO_ALT(GPIO_PWM1, GPIO_ALT);
 	
 	// stop clock and waiting for busy flag doesn't work, so kill clock
-	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_KILL; //0x5A000000 | (1 << 5);
+	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_KILL; 
 	udelay(10);  
 	
-	idiv = (int) (19200000.0f / 16000.0f); // =1200
-	*(clk + CLK_DIV)  = CLK_PASSWD | CLK_DIV_DIVI(idiv); //0x5A000000 | (idiv<<12);	
+	// Set clock divider
+	*(clk + CLK_DIV)  = CLK_PASSWD | CLK_DIV_DIVI(96); 
 	
 	// source=osc and enable clock
-	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_ENAB | CLK_CTL_SRC(CLK_CTL_SRC_OSC); //0x5A000011;
+	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_ENAB | CLK_CTL_SRC(CLK_CTL_SRC_OSC); 
 
-	// disable PWM
+	// disable PWM and start with a clean register
 	*(pwm + PWM_CTL) = 0;
 	
-	// needs some time until the PWM module gets disabled, without the delay the PWM module crashs
+	// needs some time until the PWM module gets disabled, without the delay the PWM module crashes
 	udelay(10);  
 	
-	// filled with 0 for 20 milliseconds = 320 bits
-	*(pwm + PWM_RNG2) = 320;
+	// Set the PWM range
+	*(pwm + PWM_RNG2) = 4000;
 	
-	// 32 bits = 2 milliseconds, init with 1 millisecond
+	// Initialize with a 50% dutycycle
 	setServo(50);
 	
-	// start PWM 
-	*(pwm + PWM_CTL) = PWM_CTL_MODE2 | PWM_CTL_PWEN2 | PWM_CTL_MSEN2;
-
+	// start PWM in M/S transmission mode
+	*(pwm + PWM_CTL) = PWM_CTL_MSEN2 | PWM_CTL_PWEN2;
+	
 	interrupt_config();
     
 	return SUCCESS;
@@ -272,28 +259,6 @@ static int device_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/** 
- * device-read() - Called when a process, which already opened the 
- * device file, attempts to read from it.
- */
-static ssize_t device_read(struct file *filp,   /* see include/linux/fs.h   */
-                           char *buffer,        /* buffer to fill with data */
-                           size_t length,       /* length of the buffer     */
-                           loff_t * offset)
-{
-	if(GPIO_READ(GPIO_LED))
-	{
-		printk(KERN_INFO "LED state is on\n");
-		put_user(1, buffer);
-	}
-	else
-	{
-		printk(KERN_INFO "LED state is off\n");
-		put_user(0, buffer);
-	}
-	return 0;
-}
-
 /**  
  * device_write() - Called when a process writes to the device file 
  */
@@ -302,25 +267,26 @@ static ssize_t device_write(struct file *filp,
 							size_t len, 
 							loff_t * off)
 {
-	int i;
+	int size, percent;
+	
+	if (len > 4) {
+		size = 4;
+	} else {
+		size = len;
+	}
 	
 	// Copy data from user space to kernel space.
-	for(i=0; i<len && i<BUF_LEN; i++)
-	{
-		get_user(msg[i], buff+i);
+	if (copy_from_user(msg, buff, size)) {
+		return -EFAULT;
 	}
-	msg_Ptr = msg;
-
-	if(strcmp(msg_Ptr, "1") == 1)
-	{
-		printk(KERN_INFO "Put LED on\n");
-		GPIO_SET(GPIO_LED);
-	} 
-	else
-	{
-		printk(KERN_INFO "Put LED off\n");
-		GPIO_CLR(GPIO_LED);
+	msg[len] = '\0';
+	
+	// Convert to integer 
+	if ( kstrtoint(msg, 10, &percent) < 0 ) {
+		return -EFAULT;
 	}
+	
+	setServo(percent);
 
-	return i;
+	return size;
 }

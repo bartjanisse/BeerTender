@@ -145,9 +145,7 @@ void setServo(int percent)
  * negative number is returned.
  */
 int init_module(void)
-{
-	int idiv;
-	
+{	
 	Major = register_chrdev(0, DEVICE_NAME, &fops);
 	if (Major < 0) {
 		printk(KERN_ALERT "Registering char device failed with %d\n", Major);
@@ -178,9 +176,8 @@ int init_module(void)
 	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_KILL; 
 	udelay(10);  
 	
-	//idiv = (int) (19200000.0f / 16000.0f);
-	idiv = 96;
-	*(clk + CLK_DIV)  = CLK_PASSWD | CLK_DIV_DIVI(idiv); 
+	// Set clock divider
+	*(clk + CLK_DIV)  = CLK_PASSWD | CLK_DIV_DIVI(96); 
 	
 	// source=osc and enable clock
 	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_ENAB | CLK_CTL_SRC(CLK_CTL_SRC_OSC); 
@@ -191,14 +188,15 @@ int init_module(void)
 	// needs some time until the PWM module gets disabled, without the delay the PWM module crashes
 	udelay(10);  
 	
-	// set the number of bits for a period of 20 milliseconds = 320 bits
+	// Set the PWM range
 	*(pwm + PWM_RNG1) = 4000;
 	
-	// 32 bits = 2 milliseconds, init with 1 millisecond
+	// Initialize with a 50% dutycycle
 	setServo(50);
 	
 	// start PWM in M/S transmission mode
 	*(pwm + PWM_CTL) = PWM_CTL_MSEN1 | PWM_CTL_PWEN1;
+	
 	interrupt_config();
     
 	return SUCCESS;

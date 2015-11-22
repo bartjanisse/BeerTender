@@ -37,4 +37,4 @@ wo 11-11-205		20:00 - 22:30	Beide hw pwm's werkend gekregen
 do 12-11-2015		20:30 - 22:30 	Begonnen met uitzoeken hoe de pwm clock nu precies werkt zodat we een juiste frequentie kunnen gaan gebruiken.
 
 za	21-11-2015	13:00 - 16:00	Testopstelling gemaakt met servo motor en, pi en de Logicport
-zo	22-11-2015	11:00 - 			
+zo	22-11-2015	11:00 - 	20:00	PWM_1 en PWM_2 opgeschoond en verder uitgebreid zodat de dutycycle naar de device file geschreven kan worden. PWM clock verder uitgezocht en gedocumenteerd.		
