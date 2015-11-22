@@ -50,7 +50,7 @@ servos is that the puls length can be varried from 1ms to 2 ms. When pulses of 1
 given the servo shaft will be positioned at 0 degrees and when pulses of 2ms are given the servo 
 shaft will be positioned to a 180 degrees. See te diagram below for clarification.
 
-
+```
     +-------+                     +---
     |       |                     |
  ---+       +---------------------+
@@ -61,32 +61,32 @@ S =  20ms (fixed)
 M = 2.0ms => 180 degrees
 M = 1.5ms =>  90 degrees
 M = 1.0ms =>   0 degrees
-
+```
 ###Setting up the PWM
 The dutycycle for the PWM is managed the registers PWM_RNGi and PWM_DATi. PWM_RNGi is responsible
 for the complete cycle time S and PWM_DATi is responsible for the pulstime M. The dutycycle ca
 be easily calculated with:
-
+```
           PWM_DATi
 	dc = ---------- * 100%
           PWM_RNGi
-          
+```          
 The next thing we need to calculate is the frequency of the pulses which are needed by the PWM. 
 This can be done with the following formula:
-
+```
                               PWM cycle time (S)
 	puls frequency =  1 / ( --------------------- )
                                   PWM_RNGi 
-
+```
 ### Setting up the clock
 An internal clock which has a base frequency of 19.2MHz delivers the pulses needed by the PWM's. So to get 
 the right PWM puls frequency we need to scale down this clock which can be done bij setting the correct value
 in DIVI register of the Clock Manager. Calculating this value can be done with this formula:
-
+```
 			base frequency
 	DIVI = ----------------
 	        puls frequency
-
+```
 
 ## Hardware PWM test results
 The BCM_2835 manual has a table on page 140 which specifies the GPIO assignment to PWM channels. Since most of us know by now
