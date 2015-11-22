@@ -7,18 +7,6 @@ shaft will be positioned to a 180 degrees. See te diagram below for clarificatio
 
 ![alt text](https://github.com/bartjanisse/BeerTender/blob/master/BART/software/hw_pwm/images/Servo.jpg "Servo")
 
-```
-    +-------+                     +---
-    |       |                     |
- ---+       +---------------------+
-    |<- M ->|
-    |<------------ S ------------>|
- 
-S =  20ms (fixed)
-M = 2.0ms => 180 degrees
-M = 1.5ms =>  90 degrees
-M = 1.0ms =>   0 degrees
-```
 ###Setting up the PWM
 The dutycycle for the PWM is managed by the PWM_RNGi and PWM_DATi registers. PWM_RNGi is responsible
 for the complete cycle time S and PWM_DATi is responsible for the pulstime M. The dutycycle can
