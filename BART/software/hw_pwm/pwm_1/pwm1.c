@@ -1,26 +1,34 @@
 /*
- * ??-11-2015 - Bart Janisse
+ * 22-11-2015 - Bart Janisse
  * 
- * pwm1.c: Creates a module to demonstrate ???????
+ * pwm1.c: Creates a basic module to demonstrate the hardware PWM0 and the
+ * posibility to use a interrupt for redirecting the PWM output to any GPIO.
+ * 
+ * Since this program is used for controlling a servo motor, the puls length
+ * from the PWM can vary from 1.0ms to 2.0ms. The cycle time is fixed at 20ms.
  * 
  * notes:
  * 		- use make to build this module.
  * 		- use make install to copy the following files to the Pi /bin directory:
- * 			o  int2.ko		The module.
- * 			o  int2			Shell script. See below fo an explanation.
+ * 			o  pwm1.ko	The module.
+ * 			o  pwm1		Shell script. See below fo an explanation.
  * 
- * 		- You can use the script led with the following command params:
+ * 		- You can use the script pwm1 with the following command params:
  * 			o  start:  	This loads the module and creates the appropiate 
  * 						device file (mknod).
  * 			o  stop:	This unloads the module and removes the device
  * 						file.
- * 			o  on:		Switches the LED on
- * 			o  off:		Switches the LED off
- * 			o  state:	Shows the actual LED state as reported by the 
- * 						module.
+ * 			o  info:	Displays the last 20 messages.
  * 
  * 			Please the see the int1 script for detailed information.
  * 
+ * When the module is loaded you can set the dutycycles from the prompt
+ * by writing to the devicefile. This can be done with:
+ * 
+ * 		$echo 50 > /dev/pwm1
+ * 
+ * In here 50 is the percentage of the programmed dutycylce range which 
+ * will result in a puls lengt of 1.5ms
  */
 
 #include <linux/fs.h>      		// for file_operations
@@ -29,8 +37,7 @@
 #include <linux/interrupt.h>	// for irq_handler_t, 
 #include <linux/gpio.h>			// for gpio_to_irq(), gpio_request(), gpio_free(), see ../Documentation/gpio
 #include <linux/delay.h>		// for udelay()
-
-
+#include <linux/kernel.h> 		// for kstrtoint()
 #include "RPI.h"
 #include "pwm1.h"
 
@@ -40,7 +47,6 @@
 static int Major;               /* Major number assigned to our device driver */
 static int Device_Open = 0;     /* Is device open?, used to prevent multiple access to device */
 static char msg[BUF_LEN];       /* The msg the device will give when asked */
-static char *msg_Ptr;
 
 /** 
  * This structure will hold the functions to be called 
@@ -49,7 +55,6 @@ static char *msg_Ptr;
  * the devices table, it can't be local to init_module.  
  */ 
 static struct file_operations fops = {
-        .read    = device_read,
         .write   = device_write,
         .open    = device_open,
         .release = device_release,
@@ -72,19 +77,12 @@ static irqreturn_t r_irq_handler(int irq, void *dev_id, struct pt_regs *regs)
 	// disable hard interrupts (remember them in flag 'flags')
 	local_irq_save(flags);
 
-	//printk(KERN_NOTICE "Interrupt [%d] for device %s was triggered !\n", irq, (char *) dev_id);
-
-
-	// Toggle LED
-	if (GPIO_READ(GPIO_PWM0))
-	{
-		GPIO_SET(GPIO_LED);
+	// Set the output
+	if (GPIO_READ(GPIO_PWM0)) {
+		GPIO_SET(GPIO_OUTP);
+	} else {
+		GPIO_CLR(GPIO_OUTP);
 	}
-	else
-	{
-		GPIO_CLR(GPIO_LED);
-	}
-
 
 	// restore hard interrupts
 	local_irq_restore(flags);
@@ -97,18 +95,16 @@ static irqreturn_t r_irq_handler(int irq, void *dev_id, struct pt_regs *regs)
  */
 void interrupt_config(void) 
 {
-	//GPIO_LED
-	if ( (irq_number = gpio_to_irq(GPIO_PWM0)) < 0 ) 
-	{
+	//see .../arch/arm/mach-bcm2709/include/mach/gpio.h and irqs.h
+	if ( (irq_number = gpio_to_irq(GPIO_PWM0)) < 0 ) {
 		printk("GPIO to IRQ mapping failure %s\n", GPIO_ANY_GPIO_DESC);
 		return;
 	}
 
-	printk(KERN_NOTICE "Mapped int %d\n", irq_number);
+	printk(KERN_NOTICE "Mapped interrupt %d\n", irq_number);
 	
 	//see ../include/linux/interrupt.h
-	if (request_irq(irq_number, (irq_handler_t ) r_irq_handler, IRQF_TRIGGER_RISING|IRQF_TRIGGER_FALLING, GPIO_ANY_GPIO_DESC, DEVICE_NAME)) 
-	{
+	if (request_irq(irq_number, (irq_handler_t ) r_irq_handler, IRQF_TRIGGER_RISING|IRQF_TRIGGER_FALLING, GPIO_ANY_GPIO_DESC, DEVICE_NAME)) {
 		printk("Irq Request failure\n");
 		return;
 	}
@@ -132,20 +128,14 @@ void interrupt_release(void)
 
 void setServo(int percent)
 {
-	int bitCount;
-	unsigned int bits = 0;
+	unsigned dat = 0;
 
-	// 32 bits = 2 milliseconds
-	bitCount = 16 + 16 * percent / 100;
-	if (bitCount > 32) bitCount = 32;
-	if (bitCount < 1) bitCount = 1;
-	bits = 0;
-	while (bitCount) {
-		bits <<= 1;
-		bits |= 1;
-		bitCount--;
-	}
-	*(pwm + PWM_DAT1) = bits;
+	printk(KERN_INFO "Servo speed is set to %d\n", percent);
+
+	dat = 200 + 200 * percent / 100;
+	if (dat > 400) dat = 400;
+	if (dat < 200) dat = 200;
+	*(pwm + PWM_DAT1) = dat;
 }
 
 /** 
@@ -159,8 +149,7 @@ int init_module(void)
 	int idiv;
 	
 	Major = register_chrdev(0, DEVICE_NAME, &fops);
-	if (Major < 0) 
-	{
+	if (Major < 0) {
 		printk(KERN_ALERT "Registering char device failed with %d\n", Major);
 		return Major;
 	}
@@ -169,7 +158,7 @@ int init_module(void)
 	printk(KERN_INFO "the driver, create a device file with\n");
         
 	printk(KERN_INFO "'mknod /dev/%s c %d 0'.\n", DEVICE_NAME, Major);
-	printk(KERN_INFO "Try various minor numbers. Try to cat and echo to\n");
+	printk(KERN_INFO "Try various minor numbers. Try to and echo to\n");
 	printk(KERN_INFO "the device file.\n");
 	printk(KERN_INFO "Remove the device file and module when done.\n");
     
@@ -177,11 +166,11 @@ int init_module(void)
 	pwm  = (volatile unsigned int *)ioremap(PWM_BASE,   4096);
 	clk  = (volatile unsigned int *)ioremap(CLOCK_BASE, 4096);
 	
-	// Set pin directions for the LED
-	INP_GPIO(GPIO_LED);
-	OUT_GPIO(GPIO_LED);
+	// Set pin directions for the output
+	INP_GPIO(GPIO_OUTP);
+	OUT_GPIO(GPIO_OUTP);
 	
-//---- PWM 1
+	// PWM and clock settings 
 	
 	SET_GPIO_ALT(GPIO_PWM0, GPIO_ALT);
 	
@@ -189,26 +178,27 @@ int init_module(void)
 	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_KILL; 
 	udelay(10);  
 	
-	idiv = (int) (19200000.0f / 16000.0f);
+	//idiv = (int) (19200000.0f / 16000.0f);
+	idiv = 96;
 	*(clk + CLK_DIV)  = CLK_PASSWD | CLK_DIV_DIVI(idiv); 
 	
 	// source=osc and enable clock
 	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_ENAB | CLK_CTL_SRC(CLK_CTL_SRC_OSC); 
 
-	// disable PWM
+	// disable PWM and start with a clean register
 	*(pwm + PWM_CTL) = 0;
 	
-	// needs some time until the PWM module gets disabled, without the delay the PWM module crashs
+	// needs some time until the PWM module gets disabled, without the delay the PWM module crashes
 	udelay(10);  
 	
-	// filled with 0 for 20 milliseconds = 320 bits
-	*(pwm + PWM_RNG1) = 320;
+	// set the number of bits for a period of 20 milliseconds = 320 bits
+	*(pwm + PWM_RNG1) = 4000;
 	
 	// 32 bits = 2 milliseconds, init with 1 millisecond
-	setServo(0);
+	setServo(50);
 	
-	// start PWM1 
-	*(pwm + PWM_CTL) = PWM_CTL_MSEN1 | PWM_CTL_MODE1 | PWM_CTL_PWEN1;
+	// start PWM in M/S transmission mode
+	*(pwm + PWM_CTL) = PWM_CTL_MSEN1 | PWM_CTL_PWEN1;
 	interrupt_config();
     
 	return SUCCESS;
@@ -221,8 +211,7 @@ void cleanup_module(void)
 {
 	interrupt_release();
 	
-	if(gpio)
-	{
+	if(gpio) {
         // release the mapping
         iounmap(gpio);
 	}
@@ -240,15 +229,11 @@ void cleanup_module(void)
  */
 static int device_open(struct inode *inode, struct file *file)
 {
-	if (Device_Open)
-	{
+	if (Device_Open) {
 		return -EBUSY;
 	}
      
 	Device_Open++;
-	
-	/* Initialize the msg */
-	msg_Ptr = msg;
                  
 	try_module_get(THIS_MODULE);
 	
@@ -271,28 +256,6 @@ static int device_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/** 
- * device-read() - Called when a process, which already opened the 
- * device file, attempts to read from it.
- */
-static ssize_t device_read(struct file *filp,   /* see include/linux/fs.h   */
-                           char *buffer,        /* buffer to fill with data */
-                           size_t length,       /* length of the buffer     */
-                           loff_t * offset)
-{
-	if(GPIO_READ(GPIO_LED))
-	{
-		printk(KERN_INFO "LED state is on\n");
-		put_user(1, buffer);
-	}
-	else
-	{
-		printk(KERN_INFO "LED state is off\n");
-		put_user(0, buffer);
-	}
-	return 0;
-}
-
 /**  
  * device_write() - Called when a process writes to the device file 
  */
@@ -301,25 +264,26 @@ static ssize_t device_write(struct file *filp,
 							size_t len, 
 							loff_t * off)
 {
-	int i;
+	int size, percent;
+	
+	if (len > 4) {
+		size = 4;
+	} else {
+		size = len;
+	}
 	
 	// Copy data from user space to kernel space.
-	for(i=0; i<len && i<BUF_LEN; i++)
-	{
-		get_user(msg[i], buff+i);
+	if (copy_from_user(msg, buff, size)) {
+		return -EFAULT;
 	}
-	msg_Ptr = msg;
-
-	if(strcmp(msg_Ptr, "1") == 1)
-	{
-		printk(KERN_INFO "Put LED on\n");
-		GPIO_SET(GPIO_LED);
-	} 
-	else
-	{
-		printk(KERN_INFO "Put LED off\n");
-		GPIO_CLR(GPIO_LED);
+	msg[len] = '\0';
+	
+	// Convert to integer 
+	if ( kstrtoint(msg, 10, &percent) < 0 ) {
+		return -EFAULT;
 	}
+	
+	setServo(percent);
 
-	return i;
+	return size;
 }

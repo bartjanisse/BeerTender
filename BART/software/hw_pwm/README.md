@@ -3,17 +3,17 @@ The PWM controller consists of two independent channels implementing the pwm alg
 mode or serialiser mode. In PWM mode there are two sub-modes. All three modes are explained below.
 
 Configuring can be done by setting the relevant bits in the PWM control register. The table below shows how this
-must be done.
+can be done.
 
-|               | MODEi | MSENi | USEFi |
-|:--------------|:-----:|:-----:|:-----:|
-| Serialiser    |   1   |   x   |   x   |
-| Dutycycle M/N |   0   |   0   |  1/0  |
-| Dutycycle M/S |   0   |   1   |  1/0  |
+|               | MODEi | MSENi |
+|:--------------|:-----:|:-----:|
+| Serialiser    |   1   |   x   |
+| Dutycycle M/N |   0   |   0   |
+| Dutycycle M/S |   0   |   1   |
 
 
-### PWM serialiser mode
-In this mode the PWM always uses the FIFO to sends its data.  
+### PWM serialiser mode ====> ja
+In this mode the PWM always uses PWM_DATi or FIFO to serial sends its data.  
 
 ???????????????????????????????????????????????
 ???????????????????????????????????????????????
@@ -30,7 +30,7 @@ In this mode the PWM always uses the FIFO to sends its data.
     |<- M ->|<-------- N -------->|
 
 
-### PWM dutycycle M/S mode
+### PWM dutycycle M/S mode ====> ja
 
 
     +-------+                     +---
@@ -40,6 +40,53 @@ In this mode the PWM always uses the FIFO to sends its data.
     |<------------ S ------------>|
     
     
+
+
+
+## Controlling servo's
+A hobby servo motor works with variable pulses at a fixed cycle of 20ms. If the puls length
+is varried, the angle of the servo motor shaft varries accordingly. Common for these type of
+servos is that the puls length can be varried from 1ms to 2 ms. When pulses of 1ms are 
+given the servo shaft will be positioned at 0 degrees and when pulses of 2ms are given the servo 
+shaft will be positioned to a 180 degrees. See te diagram below for clarification.
+
+
+    +-------+                     +---
+    |       |                     |
+ ---+       +---------------------+
+    |<- M ->|
+    |<------------ S ------------>|
+ 
+S =  20ms (fixed)
+M = 2.0ms => 180 degrees
+M = 1.5ms =>  90 degrees
+M = 1.0ms =>   0 degrees
+
+###Setting up the PWM
+The dutycycle for the PWM is managed the registers PWM_RNGi and PWM_DATi. PWM_RNGi is responsible
+for the complete cycle time S and PWM_DATi is responsible for the pulstime M. The dutycycle ca
+be easily calculated with:
+
+          PWM_DATi
+	dc = ---------- * 100%
+          PWM_RNGi
+          
+The next thing we need to calculate is the frequency of the pulses which are needed by the PWM. 
+This can be done with the following formula:
+
+                              PWM cycle time (S)
+	puls frequency =  1 / ( --------------------- )
+                                  PWM_RNGi 
+
+### Setting up the clock
+An internal clock which has a base frequency of 19.2MHz delivers the pulses needed by the PWM's. So to get 
+the right PWM puls frequency we need to scale down this clock which can be done bij setting the correct value
+in DIVI register of the Clock Manager. Calculating this value can be done with this formula:
+
+			base frequency
+	DIVI = ----------------
+	        puls frequency
+
 
 ## Hardware PWM test results
 The BCM_2835 manual has a table on page 140 which specifies the GPIO assignment to PWM channels. Since most of us know by now
@@ -59,27 +106,3 @@ The table below shows the test results.
 | GPIO 45 | -         | Alt fun 0 | **N**        |
 | GPIO 52 | Alt fun 1 | -         | **N**        |
 | GPIO 53 | -         | Alt fun 1 | **N**        |
-
-
-## Clock divider
-The PWM's are driven by a clock. The base frequency for this clock is 19.2MHz and 
-can be varied. Variation is done by setting the values for a clock divider.
-
-
-
-
-
-
-A servo's normaly works with pulses M varying from 1.0ms to 2.0ms for angles
-from 0 to 180 degrees. The cycle S should be constant at 20ms.
-
-    +-------+                     +---
-    |       |                     |
- ---+       +---------------------+
-    |<- M ->|
-    |<------------ S ------------>|
- 
-S =  20ms 
-M = 2.0ms => 180 degrees (DC = 10%)
-M = 1.5ms =>  90 degrees (DC = 7.5%)
-M = 1.0ms =>   0 degrees (DC = 5%)

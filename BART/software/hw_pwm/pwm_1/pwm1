@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Script for int2 module
+# Script for pwm1 module
 #
 
 case "$1" in
@@ -14,7 +14,7 @@ case "$1" in
 	echo $'\nTry on of the following params:\n'
 	echo $'  on - to switch the led on'
 	echo $'  off - to switch the led off'
-	echo $'  state - to get te actual LED state\n'
+	echo $'  info - to get the last log messages\n'
 	;;
   stop)
 	echo -n $'Stopping module...\n'
@@ -26,23 +26,12 @@ case "$1" in
   info)
 	cat /var/log/messages | tail -20
 	;;
-  on)
-	echo "1" > /dev/pwm1
-	;;
-  off)
-	echo "0" > /dev/pwm1
-	;;	
-  state)
-    cat /dev/int2
-	cat /var/log/messages | tail -1
-	cat /var/log/messages | tail -1
-	;;
   restart|reload)
 	"$0" stop
 	"$0" start
 	;;
   *)
-	echo "Usage: $0 {start|stop|restart|info|on|off|state}"
+	echo "Usage: $0 {start|stop|restart|reload|info}"
 	exit 1
 esac
 
