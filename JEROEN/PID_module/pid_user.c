@@ -1,15 +1,15 @@
 #include<stdio.h>
 
-#define epsilon 100   // minimal difference to let the integrator work
-#define dt 10         // miliseconds
-#define MAX 10000	  // max output
-#define MIN -10000    // min output
+#define epsilon 100   	// minimal difference to let the integrator work
+#define dt 10         	// miliseconds
+#define MAX 1000000	  	// max output
+#define MIN -1000000	// min output
 
-#define Kp 1
-#define Ki 0
-#define Kd 1
+#define Kp 0
+#define Ki 1
+#define Kd 0
 
-// get the absolute value implemented instead of including stlib for kernel space implementation
+// get the absolute value implemented instead of including stdlib for kernel space implementation
 int abs(int i)
 {      /* compute absolute value of int argument */
 	return (i < 0 ? -i : i);
@@ -20,20 +20,25 @@ int abs(int i)
 // in user space kan het met floats, module moet met int werken (-10000 tot 10000)
 // output loggen in een file om zichtbaar te maken in excel 
 // stap response als input omheen bouwen
-int PIDcal(int error)
+int PIDcal(int input)
 {
-	static int previous_error = 0;
+	static int previous_input = 0;
 	static int integral = 0;
 	int derivative;
 	int output;
+
+	//printf("previous input = %d\n", previous_input);
 	
 	// in case error is to small stop integration
-	if (abs(error) > epsilon)
+	if (abs(input) > epsilon)
 	{
-		integral = integral + error * dt;
+		integral = integral + input * dt;
 	}
-	derivative = (error - previous_error)/dt;
-	output = Kp*error + Ki*integral + Kd*derivative;
+	derivative = (input - previous_input) / dt;
+	//printf("integral = %d derivative = %d\n", integral, derivative);
+
+	output = Kp*input + Ki*integral + Kd*derivative;
+	//printf("output = %d\n", output);
 	
 	if (output > MAX)
 	{
@@ -44,31 +49,29 @@ int PIDcal(int error)
 		output = MIN;
 	}
 	
-	previous_error = error;
+	previous_input = input;
 	
 	return output;
 }
 
 int main(int argc, char **argv)
 {
-	int setpoint = 0;
-	int position = 0;
+	int output = 0;
 	int counter = 0;
 		
-	while (position < MAX)
+	while (1)
 	{
-		int error = setpoint - position;
+		int input = 1;
 		
-		//printf("setpoint = %d, position = %d, error = %d\n", setpoint, position, error);
-		printf("%d;", position);
-
-		position = PIDcal(error);
+		output = PIDcal(input * 10000) / 10000;
+		printf("%d;", output);
 		
 		counter++;
-		if (counter > 10)
-			setpoint = 10;
 		if (counter > 100)
+		{
+			printf("break the loop\n");
 			break;
+		}
 	}
 	
 	return 0;
