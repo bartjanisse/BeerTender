@@ -1,0 +1,185 @@
+//Phytec	
+#define SYS		"/sys"
+	
+//VirtualPhytec	
+#define SYS 		"s:"
+	
+//Motor	
+#define MOTOR_PERIOD	SYS "/class/pwm/pwm1/period"
+#define MOTOR_DUTY     	SYS "/class/pwm/pwm1/duty"
+#define MOTOR_ACTIVE   	SYS "/class/pwm/pwm1/active"
+#define MOTOR_DIRECTION	SYS "/class/gpio/gpio19/level"
+							
+//Tacho                	
+#define TACHO			YS "/class/gpio_events/gpio_event91/event"
+							
+//Keys                 	
+#define KEY1			SYS "/class/gpio_events/gpio_event14/event"
+#define KEY2           	SYS "/class/gpio_events/gpio_event86/event"
+#define KEY3           	SYS "/class/gpio_events/gpio_event87/event"
+							
+//Leds                 	
+#define GPIO_MAP		SYS "/class/gpio/map_gpio"
+#define ENABLE_LED1    	"58:out:lo"
+#define ENABLE_LED2    	"59:out:lo"
+#define ENABLE_LED3    	"60:out:lo"
+#define ENABLE_LED4    	"65:out:lo"
+#define ENABLE_LED5    	"67:out:lo"
+#define ENABLE_LED6    	"68:out:lo"
+#define ENABLE_LED7    	"70:out:lo"
+#define ENABLE_LED8    	"73:out:lo"
+#define LED1			SYS "/class/gpio/gpio58/level"
+#define LED2           	SYS "/class/gpio/gpio59/level"
+#define LED3           	SYS "/class/gpio/gpio60/level"
+
+
+Linux kernel module programming guide: 
+	http://www.tldp.org/LDP/lkmpg/2.4/html/x856.html
+
+LDD
+	o.a. beschrijving hoe om te gaan met rechten
+	http://www.makelinux.net/ldd3/?u=chp-9-sect-2	
+	
+Documentatie over nummers in ioctl
+	/home/student/buildroot_lin_ver/linux-rpi-3.18.16-v7/Documentation/ioctl
+
+Voorbeelden
+	/home/student/buildroot_lin_ver/linux-rpi-3.18.16-v7/drivers/char/ds1302.c
+	
+
+*************
+*
+ * 11-10-2015 - Bart Janisse
+ * 
+ * helloled3.c: Creates a read/write char device for switching on and off
+ * a LED which is connected to GPIO14 (pin 8) from the Raspberry Pi. This
+ * program is basicly a cleaned up version of helloled3.c
+ * 
+ * 
+ * notes:
+ * 		- use make to build this module.
+ * 		- use make install to copy the following files to the Pi /bin directory:
+ * 			o  helloled3.ko		The module.
+ * 			o  led				See below fo an explanation.
+ * 
+ * 		- You can use the script led with the following command params:
+ * 			o  start:  	This loads the module and creates the appropiate 
+ * 						device file (mknod).
+ * 			o  stop:	This unloads the module and removes the device
+ * 						file.
+ * 			o  on:		Switches the LED on
+ * 			o  off:		Switches the LED off
+ * 			o  state:	Shows the actual LED state as reported by the 
+ * 						module.
+ * 
+ * 			Please the see the led script for detailed information.
+ */
+
+
+/*
+ * The ioctl() implementation
+ */
+
+/* 
+ * This function is called whenever a process tries to do an ioctl on our
+ * device file. We get two extra parameters (additional to the inode and file
+ * structures, which all device functions get): the number of the ioctl called
+ * and the parameter given to the ioctl function.
+ *
+ * If the ioctl is write or read/write (meaning output is returned to the
+ * calling process), the ioctl call returns the output of this function.
+ *
+ */
+static long pwm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+	
+}
+
+/*
+int device_ioctl(
+    struct inode *inode,
+    struct file *file,
+    unsigned int cmd,
+    unsigned long arg)
+{
+	return 0;
+}*/
+/*
+{
+	long ret = 0;
+	
+	printk(KERN_INFO "Function %u is called with argument %lu\n", cmd, arg);
+	// 
+	// Switch according to the ioctl called 
+	//
+	switch (cmd) {
+
+		case IOCTL_GET_NTH_BYTE:
+	
+			printk(KERN_INFO "Function is called %lu\n", arg);
+			// 
+			// This ioctl is both input (ioctl_param) and 
+			// output (the ret value) 
+			//
+			 
+			//mutex_lock(&pwm_mutex); 
+			//mutex_unlock(&pwm_mutex); 
+			 
+			ret = arg;
+			break;
+			
+		default: // Defined by POSIX standard
+			return -ENOTTY;
+	}
+
+	return ret;
+}*/
+
+
+/** 
+ * This structure will hold the functions to be called 
+ * when a process does something to the device we 
+ * created. Since a pointer to this structure is kept in 
+ * the devices table, it can't be local to init_module.  
+ */ 
+static const struct file_operations pwm_fops = {
+		.owner   		= THIS_MODULE,
+        .unlocked_ioctl = pwm_ioctl
+};
+
+/** 
+ * init_module() - This function is called when the module is loaded
+ * 
+ * Return: On succes the function retuns a 0 (SUCCES). Otherwise a 
+ * negative number is returned.
+ */
+int init_module(void)
+{
+	int ret_val;
+
+	/* Register device and report errors */
+	if ((ret_val = register_chrdev(MAJOR_NUM, DEVICE_NAME, &pwm_fops)) < 0) 
+	{
+		printk(KERN_ALERT "Registering pwm module failed with %d\n", ret_val);
+		return ret_val;
+	}
+    
+    printk(KERN_INFO "Succesfully registered the %s module\n", DEVICE_NAME);
+     
+	return SUCCESS;
+}
+
+/**
+ * Cleanup_module() - This function is called when the module is unloaded
+ */
+void cleanup_module(void)
+{
+	/*if(gpio)
+	{
+        // release the mapping
+        iounmap(gpio);
+	}*/
+	
+	// Unregister device  
+	unregister_chrdev(MAJOR_NUM, DEVICE_NAME);
+}

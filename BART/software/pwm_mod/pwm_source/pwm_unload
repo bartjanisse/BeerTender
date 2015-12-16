@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# Script for unloading the pwm module
+#
+
+module="pwm"
+
+# remove module
+rmmod /bin/$module.ko  || exit 1
+
+# remove nodes
+rm /dev/$module
+

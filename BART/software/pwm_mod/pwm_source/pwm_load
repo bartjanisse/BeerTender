@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# Script for loading the pwm module
+#
+
+module="pwm"
+
+insmod /bin/$module.ko || exit 1
+sleep 1
+mknod /dev/pwm c 247 0
+
