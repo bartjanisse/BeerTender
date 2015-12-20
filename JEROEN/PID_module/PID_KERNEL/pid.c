@@ -6,26 +6,111 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux/delay.h>
+#include <linux/fs.h>
+#include <asm/uaccess.h> 
 
 #include "pid.h"
 
 static int Major;
-static int DeviceOpen = 0;
-static char msg[BUF_LEN];
-static char *msgPtr;
 
-static int runCalculation = 0;
-static int pidOutput;
-static int pidSetpoint;
-static int pidProcessVariable;
+static DEFINE_MUTEX(pid_mutex);
 
-static struct file_operations fops = {
-        .read    = device_read,
-        .write   = device_write,
-        .open    = device_open,
-        .release = device_release
+
+// the loop gain
+static int Kc;
+// the loop sample time
+static int Ts;
+// the integration period, set Ti very large to dissable the integrator part
+static int Ti;
+// the differation period
+static int Td;
+
+static int initialised = 0;
+
+/*
+ * pid_ioctl() is used for communication with the module
+ * 	options:
+ * 		PID_ECHO - is not implemented
+ * 		PID_SET - is used for setting the pid values
+ * 		PID_GET - is used to do the calculations
+ */
+static long pid_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+	long ret = 0;
+	
+	switch (cmd)
+	{
+		case PID_ECHO:
+		{
+			printk(KERN_INFO "Function is called %lu\n", arg);
+			break;
+		}
+		
+		case PID_SET:
+		{
+			struct PID pidsettings;
+			
+			if (copy_from_user(&pidsettings, (struct pidsettings*)arg, sizeof(pidsettings)))
+			{
+				return -EFAULT;
+			}
+			
+			mutex_lock(&pid_mutex);
+			
+			printk(KERN_INFO "PID kc = %d\n", pidsettings.Kc);
+			Kc = pidsettings.Kc;
+			printk(KERN_INFO "PID Ts = %d\n", pidsettings.Ts);
+			Ts = pidsettings.Ts;
+			printk(KERN_INFO "PID Ti = %d\n", pidsettings.Ti);
+			Ti = pidsettings.Ti;
+			printk(KERN_INFO "PID Td = %d\n", pidsettings.Td);
+			Td = pidsettings.Td;
+			
+			initialised = 1;
+			
+			mutex_unlock(&pid_mutex);
+			
+			break;
+		}
+		
+		case PID_GET:
+		{
+			struct INPUT pidinput;
+			
+			if (initialised != 1)
+			{
+				printk(KERN_ALERT "pid controller is not initialised with values\n");
+				return -EFAULT;
+			}
+			
+			if (copy_from_user(&pidinput, (struct pidinput*)arg, sizeof(pidinput)))
+			{
+				return -EFAULT;
+			}
+			
+			mutex_lock(&pid_mutex);
+			
+			printk(KERN_INFO "PID setpoint = %d PID value = %d\n", pidinput.setpoint, pidinput.processValue);
+			
+			ret = PIDcal(pidinput.setpoint, pidinput.processValue);
+			
+			mutex_unlock(&pid_mutex);
+			
+			break;
+		}
+		
+		default:
+			return -ENOTTY;
+	}
+	
+	return ret;
+}
+
+static const struct file_operations pid_fops = {
+	.owner   		= THIS_MODULE,
+	.unlocked_ioctl = pid_ioctl
 };
+
 
 /*
  * init_module() is called when the module is loaded
@@ -33,20 +118,16 @@ static struct file_operations fops = {
  */
 int init_module(void)
 {
-	Major = register_chrdev(0, DEVICE_NAME, &fops);
+	Major = register_chrdev(0, DEVICE_NAME, &pid_fops);
 	if (Major < 0)
 	{
 		printk(KERN_ALERT "Registering char device PID failed with %d\n", Major);
 		return Major;
 	}
 	
-	printk(KERN_INFO "I was assigned major number %d. To talk to\n", Major);
-	printk(KERN_INFO "the driver, create a device file with\n");
-        
-	printk(KERN_INFO "'mknod /dev/%s c %d 0'.\n", DEVICE_NAME, Major);
-	printk(KERN_INFO "Try various minor numbers. Try to cat and echo to\n");
-	printk(KERN_INFO "the device file.\n");
-	printk(KERN_INFO "Remove the device file and module when done.\n");
+	printk(KERN_INFO "Succesfully registered the %s module\n", DEVICE_NAME);
+	
+	initialised = 0;
     
     return SUCCESS;
 }
@@ -59,88 +140,6 @@ void cleanup_module(void)
 {
 	unregister_chrdev(Major, DEVICE_NAME);
 	printk(KERN_INFO "Unregistered char device PID\n");
-}
-
-/*
- * device_open() is called when a process tries to open the device file
- *
- */
- static int device_open(struct inode *inode, struct file *file);
- {
-	 if (DeviceOpen)
-	 {
-		 return -EBUSY;
-	 }
-	 
-	 DeviceOpen++;
-	 
-	 msgPtr = msg;
-	 
-	 try_module_get(THIS_MODULE);
-	 
-	 runCalculation = 1;
-	 calculationLoop();
-	 
-	 return SUCCESS;
- }
- 
- /*
-  * device_release() is called when a process closes the device file
-  * 
-  */
-static int device_release(struct inode *inode, struct file *file)
-{
-	DeviceOpen--;
-	
-	runCalculation = 0;
-	
-	module_put(THIS_MODULE);
-	
-	return SUCCESS;
-}
-
-/*
- * device_read() is called when a process which opened the file attempts
- * to read from it
- * 
- */
- static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_t *offset)
- {
-	 put_user(pidOutput, buffer);
- }
- 
-/*
- * device_write() is called when a process writes to the device file
- * 
- */
-static ssize_t device_write(struct file *filp, const char *buff, size_t len, loff_t *off)
-{
-	// read the data
-	int i;
-	for(i=0; i<len && i<BUF_LEN; i++)
-	{
-		get_user(msg[i], buff+i);
-	}
-	msg_Ptr = msg;
-	
-	
-}
-
-/*
- * calculationLoop() is running the pid calculation at sample times
- * 
- */
-void calculationLoop(void)
-{
-	pidSetpoint = 0;
-	pidProcessVariable = 0;
-	while(runCalculation)
-	{
-		pidOutput = PIDcal(pidSetpoint, pidProcessVariable);
-		
-		// wait for the sample time
-		msleep(Ts);
-	}
 }
 
 /*
@@ -161,10 +160,12 @@ int PIDcal(int SPn, int PVn)
 	MX = MIn;
 	
 	// differential part
-	MDn = Kc * (Td / Ts) * (PVnn - PVn);
+	MDn = Kc * Td * ((PVnn - PVn) / Ts);
 	PVnn = PVn;
 	
 	output = MPn + MIn + MDn;
+	
+	printk(KERN_INFO "MPn %d\tMIn %d\tMDn %d\tPVnn %d\toutput %d\n", MPn, MIn, MDn, PVnn, output);
 
 	return output;
 }

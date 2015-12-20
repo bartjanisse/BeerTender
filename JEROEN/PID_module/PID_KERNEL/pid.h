@@ -7,31 +7,37 @@
 #ifndef _PIDMODULE_H_
 #define _PIDMODULE_H_
 
-#define DEVICE_NAME "PDController"
-#define BUF_LEN 	6
-#define SUCCESS 	0
+#define DEVICE_NAME		"PIDController"
+#define SUCCESS 		0
 
 
-// the loop gain
-#define Kc 2
-// the loop sample time
-#define Ts 100
-// the integration period, set Ti very large to dissable the integrator part
-#define Ti 1000000000000000000
-// the differation period
-#define Td 10
+struct PID {
+	// the loop gain
+	int Kc;
+	// the loop sample time
+	int Ts;
+	// the integration period, set Ti very large to dissable the integrator part
+	int Ti;
+	// the differation period
+	int Td;
+};
 
-/*
- * functions 
- */
-int init_module(void);
-void cleanup_module(void);
-static int device_open(struct inode *, struct file *);
-static int device_release(struct inode *, struct file *);
-static ssize_t device_read(struct file *, char *, size_t, loff_t *);
-static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
+struct INPUT {
+	int setpoint;
+	int processValue;
+};
 
-void calculationLoop(void);
+
+#include <linux/ioctl.h>
+
+#define DEVICE_FILE_NAME	"/dev/pid"
+#define MAGIC_PATTERN		'P'
+
+#define PID_SET _IOW(MAGIC_PATTERN, 0, int)
+#define PID_GET _IOR(MAGIC_PATTERN, 1, int)
+
+#define PID_ECHO _IOWR(MAGIC_PATTERN, 2, int)
+
 int PIDcal(int SPn, int PVn);
 
 #endif
