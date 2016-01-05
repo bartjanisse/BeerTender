@@ -45,3 +45,7 @@ ma	14-12-2015	20:00 - 22:00	Verder gewerkt aan de PWM module
 di	15-12-2015	20:30 - 22:00	Geprobeerd om een struct als argument (ioctl) mee te geven.
 wo	16-12-2015	20:00 - 22:45	Succevol pointer naar een struct (user -> kernel).
 
+zo 	03-01-2016	11:00 - 16:00	Verdere implementatie PWM module (probleem met onderverdeling in separate .h en .c files)
+zo	03-01-2016	18:00 - 21:30	Methode clk_set() geimplementeerd en getest
+ma	04-01-2016	20:00 - 22:15	Methode pwm_set() geimplementeerd en getest
+di	05-01-2016	19:30 - 21:30	Implementatie interrupts

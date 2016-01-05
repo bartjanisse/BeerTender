@@ -11,7 +11,7 @@
 #		PIDIR   : Directory name for installation on the Raspberry PI.
 #		UTILS	: List of utilities which will be copied. Used during install.
 
-APP		= pwm
+APP	= pwm
 OBJS	= main.o
 PIUSR	= root
 PIIP	= 192.168.123.42

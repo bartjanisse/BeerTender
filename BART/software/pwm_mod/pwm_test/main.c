@@ -15,8 +15,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>		/* open */
-#include <unistd.h>		/* exit */
+#include <fcntl.h>			/* open */
+#include <unistd.h>			/* exit */
 #include <sys/ioctl.h>		/* ioctl */
 
 /* 
@@ -53,9 +53,9 @@ int main()
 {
 	int file_desc;
 	
-	file_desc = open(DEVICE_FILE_NAME, 0);
+	file_desc = open(PWM_DEVICE_NAME, 0);
 	if (file_desc < 0) {
-		printf("Can't open device file: %s\n", DEVICE_FILE_NAME);
+		printf("Can't open device file: %s\n", PWM_DEVICE_NAME);
 		exit(-1);
 	}
 
