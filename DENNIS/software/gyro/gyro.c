@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <dirent.h>
@@ -16,12 +17,14 @@
 #include <unistd.h>
 
 // MPU macros
-//#define MPU6050_ADDR 	0x68	// 7 bit adres 
-#define MPU6050_ADDR 	0x69    // reg 105 //One of these address should work. Depends on module HW address
+//One of these addresses should work. Depends on module HW address
+#define MPU6050_ADDR 	0x68	// 7 bit adres 
+//#define MPU6050_ADDR 	0x69    // reg 105 
 #define CONFIG 			0x1A	// reg 26
 #define ACCEL_CONFIG 	0x1C	// reg 28
 #define GYRO_CONFIG 	0x1B	// reg 27
 #define PWR_MGMT_1 		0x6B	// reg 107
+#define SELF_TEST		0x00
 
 // I2C macros
 #define BSC0_C        	*(bsc0.addr + 0x00)
@@ -49,23 +52,25 @@
 #define BSC_S_DONE   	(1 << 1)
 #define BSC_S_TA    	1
 #define CLEAR_STATUS    BSC_S_CLKT|BSC_S_ERR|BSC_S_DONE
-
-#define ACCELEROMETER_SENSITIVITY 	8192.0
-#define GYROSCOPE_SENSITIVITY 		65.536
-#define filterConstant 				0.10 	// Complementary filter
+#define I2C_SLV_DO		0x64
 
 // GPIO setup macros. Always use INP_GPIO(x) before using OUT_GPIO(x) or SET_GPIO_ALT(x,y)
 #define INP_GPIO(g) 	*(gpio.addr + ((g)/10)) &= ~(7<<(((g)%10)*3))
 #define OUT_GPIO(g) 	*(gpio.addr + ((g)/10)) |=  (1<<(((g)%10)*3))
 #define SET_GPIO_ALT(g,a) *(gpio.addr + (((g)/10))) |= (((a)<=3?(a) + 4:(a)==4?3:2)<<(((g)%10)*3))
-
 #define GPIO_SET 	*(gpio.addr + 7)  // sets   bits which are 1 ignores bits which are 0
 #define GPIO_CLR 	*(gpio.addr + 10) // clears bits which are 1 ignores bits which are 0
-
 #define GPIO_READ(g) 	*(gpio.addr + 13) &= (1<<(g))
 
-#define RPI
-//#define RPI2
+// Global macros
+#define ACCELEROMETER_SENSITIVITY 	8192.0
+#define GYROSCOPE_SENSITIVITY 		65.536
+#define filterConstant 				0.10 	// Complementary filter
+#define PAGE_SIZE 		(4*1024)
+#define BLOCK_SIZE 		(4*1024)
+
+//#define RPI
+#define RPI2
 
 #ifdef RPI
 #define BCM2708_PERI_BASE       0x20000000
@@ -79,9 +84,6 @@
 #define BSC0_BASE 				(BCM2708_PERI_BASE + 0x804000)	// I2C controller	
 #endif	
 
-#define PAGE_SIZE 		(4*1024)
-#define BLOCK_SIZE 		(4*1024)
-
 // IO Acces
 struct bcm2835_peripheral {
     unsigned long addr_p;
@@ -89,8 +91,7 @@ struct bcm2835_peripheral {
     void *map;
     volatile unsigned int *addr;
 };
-
-void ComplementaryFilter(short accData[3], short gyrData[3], float *pitch, float *roll); 	
+	
 struct bcm2835_peripheral gpio = {GPIO_BASE};
 struct bcm2835_peripheral bsc0 = {BSC0_BASE};
 
@@ -106,34 +107,14 @@ void wait_i2c_done() {
 }
 
 void i2c_init() {
-
-	// Pi1
-    INP_GPIO(0);
-    SET_GPIO_ALT(0, 0);
-    INP_GPIO(1);
-    SET_GPIO_ALT(1, 0);
     
-    // Pi2
-    //INP_GPIO(2);
-	//SET_GPIO_ALT(2, 0);
-	//INP_GPIO(3);
-	//SET_GPIO_ALT(3, 0);
+    INP_GPIO(2);
+	SET_GPIO_ALT(2, 0);
+	INP_GPIO(3);
+	SET_GPIO_ALT(3, 0);
 } 
 
-int SetProgramPriority(int priorityLevel) {
-    struct sched_param sched;
-
-    memset (&sched, 0, sizeof(sched));
-
-    if (priorityLevel > sched_get_priority_max (SCHED_RR))
-        priorityLevel = sched_get_priority_max (SCHED_RR);
-
-    sched.sched_priority = priorityLevel;
-
-    return sched_setscheduler (0, SCHED_RR, &sched);
-}
-
-/****  RPI.c **********************************************************/
+/****  RPI  **********************************************************/
 
 // Exposes the physical address defined in the passed structure using mmap on /dev/mem
 int map_peripheral(struct bcm2835_peripheral *p) {
@@ -168,24 +149,7 @@ void unmap_peripheral(struct bcm2835_peripheral *p) {
     close(p->mem_fd);
 }
 
-void dump_bsc_status() {
-
-    unsigned int s = BSC0_S;
-
-    printf("BSC0_S: ERR=%d  RXF=%d  TXE=%d  RXD=%d  TXD=%d  RXR=%d  TXW=%d  DONE=%d  TA=%d\n",
-        (s & BSC_S_ERR) != 0,
-        (s & BSC_S_RXF) != 0,
-        (s & BSC_S_TXE) != 0,
-        (s & BSC_S_RXD) != 0,
-        (s & BSC_S_TXD) != 0,
-        (s & BSC_S_RXR) != 0,
-        (s & BSC_S_TXW) != 0,
-        (s & BSC_S_DONE) != 0,
-        (s & BSC_S_TA) != 0 );
-}
-
-/****  MPU.c **********************************************************/
-
+/****  MPU  **********************************************************/
 void MPU6050_SetRegister(unsigned char regAddr, unsigned char regValue)
 {
     // See datasheet (PS) page 36: Single Byte Write Sequence
@@ -207,7 +171,7 @@ void MPU6050_SetRegister(unsigned char regAddr, unsigned char regValue)
 
 void MPU6050_Init()
 {
-//    MPU6050_SetRegister(PWR_MGMT_1, 0x80);	// Device Reset
+    //MPU6050_SetRegister(PWR_MGMT_1, 0x80);		// Device Reset
     MPU6050_SetRegister(PWR_MGMT_1, 0x00); 		// Clear sleep bit
     MPU6050_SetRegister(CONFIG, 0x00); 	
     MPU6050_SetRegister(GYRO_CONFIG, 0x08);
@@ -221,13 +185,13 @@ void MPU6050_Read(short * accData, short * gyrData) {
     // Slave :            ACK      ACK          ACK DATA       DATA
 
     BSC0_DLEN = 1;    			// one byte
-    BSC0_FIFO = 0x3B;    		// value of first register // reg 59: accelerometer measurements
+    BSC0_FIFO = 0x3B;    		// value of first register
     BSC0_S = CLEAR_STATUS; 		// Reset status bits (see #define)
     BSC0_C = START_WRITE;    	// Start Write (see #define)
 
     wait_i2c_done();
 
-    BSC0_DLEN = 14;
+    BSC0_DLEN = 14;				// Read 14 registers of 1 byte 0x3B...0x48
 
     BSC0_S = CLEAR_STATUS;		// Reset status bits (see #define)
     BSC0_C = START_READ;    	// Start Read after clearing FIFO (see #define)
@@ -237,45 +201,43 @@ void MPU6050_Read(short * accData, short * gyrData) {
     short tmp;
 
     int i = 0;	
-    for(i=0; i<3; i++) 			// Accelerometer
+    for(i=0; i < 3; i++) 		// Accelerometer
     {
 		tmp = BSC0_FIFO << 8;	
 		tmp += BSC0_FIFO;
-		accData[i] = tmp; 
+		accData[i] = tmp;
     }
     
     tmp = BSC0_FIFO << 8; 		// Temperature
-    tmp += BSC0_FIFO;	
+    tmp += BSC0_FIFO;
 
-    for(i=0; i<3; i++)			// Gyroscope
+    for(i=0; i < 3; i++)		// Gyroscope
     {
 		tmp = BSC0_FIFO << 8;
 		tmp += BSC0_FIFO;
-		gyrData[i] = tmp; 
+		gyrData[i] = tmp;
     }
-}
-
-void ComplementaryFilter(short accData[3], short gyrData[3], float *pitch, float *roll)
-{
-    //float pitchAcc, rollAcc;               
-
-    //// Integrate the gyroscope data -> int(angularSpeed) = angle
-    //*pitch += (float)gyrData[0] / 6553.6; 	// Angle around the X-axis
-    //*roll -= (float)gyrData[1] / 6553.6;	// Angle around the Y-axis
-
-    //// Compensate for drift with accelerometer data if !bullshit
-    //// Sensitivity = -2 to 2 G at 16Bit -> 2G = 32768 && 0.5G = 8192
-    //int forceMagnitudeApprox = abs(accData[0]) + abs(accData[1]) + abs(accData[2]);
-    //if (forceMagnitudeApprox > 8192 && forceMagnitudeApprox < 32768)
-    //{
-	//// Turning around the X axis results in a vector on the Y-axis
-        //pitchAcc = atan2f((float)accData[1], (float)accData[2]) * 180 / M_PI;
-        //*pitch = *pitch * (1 - filterConstant) + pitchAcc * filterConstant;
-
-	//// Turning around the Y axis results in a vector on the X-axis
-        //rollAcc = atan2f((float)accData[0], (float)accData[2]) * 180 / M_PI;
-        //*roll = *roll * (1 - filterConstant) + rollAcc * filterConstant;
-    //}
+    
+    printf("acc_XOUT: %d     acc_YOUT: %d     acc_ZOUT: %d\n", 
+		accData[0], accData[1], accData[2]);
+	printf("gyr_XOUT: %d     gyr_YOUT: %d     gyr_ZOUT: %d\n", 
+		gyrData[0], gyrData[1], gyrData[2]);    
+	
+	// accelero messurement registers 
+    //0x3B;    		ACCEL_XOUT[15:8]
+    //0x3C;			ACCEL_XOUT[7:0]
+    //0x3D;    		ACCEL_YOUT[15:8]
+    //0x3E;			ACCEL_YOUT[7:0]
+    //0x3F;    		ACCEL_ZOUT[15:8]
+    //0x40;			ACCEL_ZOUT[7:0]
+    
+    // gyro messurement registers 
+    //0x43;    		GYRO_XOUT[15:8]
+    //0x44;			GYRO_XOUT[7:0]
+    //0x45;    		GYRO_YOUT[15:8]
+    //0x46;			GYRO_YOUT[7:0]
+    //0x47;    		GYRO_ZOUT[15:8]
+    //0x48;			GYRO_ZOUT[7:0]
 }
 
 int main(int argc, char *argv[])
@@ -299,23 +261,16 @@ int main(int argc, char *argv[])
     // Global variables
     short accData[3], gyrData[3];      	// Short is a 16 bit int!
     short tmp;
-    //float pitch = 0, roll = 0;
-    //float pitchOnlyAcc = 0, pitchOnlyGyr = 0;
-    //bool isPlot = false;
     float time = 0;
-    //FILE *fileHandle;
     struct timespec tp;
     long startTime, procesTime;
 
-    //if(argc > 1) 			// An argument was specified (plot file)
-    //{
-    	//// Create file to put the plot data in
-    	//fileHandle = fopen(argv[1], "w+");
-    	//printf("File %s was created.\n", argv[1]);
-		//isPlot = true;
-    //}
-
-    //initscr();				// Initialise ncurses window
+	accData[0] = 0;
+	accData[1] = 0;
+	accData[2] = 0;
+	gyrData[0] = 0;
+	gyrData[1] = 0;
+	gyrData[2] = 0;
 
     while(1)
     {
@@ -324,69 +279,7 @@ int main(int argc, char *argv[])
 		startTime = tp.tv_sec*1000000000 + tp.tv_nsec;
 
 		// Read MPU6050 sensor
-		MPU6050_Read(&accData[0], &gyrData[0]);
-		
-		// Switch Axes
-		tmp = accData[2];
-		accData[2] = -tmp;
-		tmp = accData[0];
-		accData[0] = -tmp;
-	 
-		printf("Accelerometer X: %f\n", (float)accData[0]);
-		printf("Accelerometer Y: %f\n", (float)accData[1]);
-		printf("Accelerometer Z: %f\n", (float)accData[2]);
-		
-		printf("Gyroscoop X: %f\n", (float)gyrData[0]);
-		printf("Gyroscoop Y: %f\n", (float)gyrData[1]);
-		printf("Gyroscoop Z: %f\n", (float)gyrData[2]);
-	 
-		// Calculate the pitch and roll with the complementary filter
-		//ComplementaryFilter(&accData[0], &gyrData[0], &pitch, &roll); 	
-
-		//// Calculate pitch and roll with only accelerometer and gyro for plotting reasons
-		//pitchOnlyGyr += (float)gyrData[0] / 6553.6; 	// Angle around the X-axis
-			//pitchOnlyAcc = atan2f((float)accData[1], (float)accData[2]) * 180 / M_PI;
-
-		//if(isPlot)
-		//{
-			//// Write data to plot file
-			//fprintf(fileHandle, "%f \t %f \t %f \t %f\n", time, pitch, pitchOnlyGyr, pitchOnlyAcc);		
-		//}
-
-		//clear();
-
-			//attron(A_STANDOUT);
-			//mvprintw(1, 2, "MPU6050 Data");		
-			//attroff(A_STANDOUT);
-
-		//mvprintw(3, 5, "Accelerometer X: %f", (float)accData[0]/ACCELEROMETER_SENSITIVITY);
-		//mvprintw(4, 5, "              Y: %f", (float)accData[1]/ACCELEROMETER_SENSITIVITY);
-		//mvprintw(5, 5, "              Z: %f", (float)accData[2]/ACCELEROMETER_SENSITIVITY);
-		
-		//mvprintw(3, 40, "Gyroscope RX: %f", (float)gyrData[0]/GYROSCOPE_SENSITIVITY);
-		//mvprintw(4, 40, "          RY: %f", (float)gyrData[1]/GYROSCOPE_SENSITIVITY);
-		//mvprintw(5, 40, "          RZ: %f", (float)gyrData[2]/GYROSCOPE_SENSITIVITY);
-
-			//attron(A_STANDOUT);
-			//mvprintw(7, 2, "Complementary Filter");		
-			//attroff(A_STANDOUT);
-
-		//mvprintw(9, 5, "Pitch: %f", pitch);
-		//mvprintw(10, 5, "Roll:  %f", roll);
-	 
-		//refresh();
-		
-		clock_gettime(CLOCK_REALTIME, &tp);
-		procesTime = (tp.tv_sec*1000000000 + tp.tv_nsec) - startTime;
-
-		time += 0.01;
-
-		while(procesTime < 10000000)	// Wait for 10 ms
-		{
-			clock_gettime(CLOCK_REALTIME, &tp);
-			procesTime = (tp.tv_sec*1000000000 + tp.tv_nsec) - startTime;
-		}
+		MPU6050_Read(accData, gyrData);
     }
-    //endwin();
 }
 
