@@ -178,50 +178,60 @@ void MPU6050_Init()
     MPU6050_SetRegister(ACCEL_CONFIG, 0x08);
 }
 
-void MPU6050_Read(short * accData, short * gyrData) {
+void MPU6050_Read() {
     // See datasheet (PS) page 37: Burst Byte Read Sequence
 
     // Master:   S  AD+W       RA       S  AD+R           ACK        NACK  P
     // Slave :            ACK      ACK          ACK DATA       DATA
 
+	short accData[3], gyrData[3];      	// Short is a 16 bit int!
+	accData[0] = 0;
+	accData[1] = 0;
+	accData[2] = 0;
+	gyrData[0] = 0;
+	gyrData[1] = 0;
+	gyrData[2] = 0;
+
     BSC0_DLEN = 1;    			// one byte
     BSC0_FIFO = 0x3B;    		// value of first register
     BSC0_S = CLEAR_STATUS; 		// Reset status bits (see #define)
     BSC0_C = START_WRITE;    	// Start Write (see #define)
-
     wait_i2c_done();
-
     BSC0_DLEN = 14;				// Read 14 registers of 1 byte 0x3B...0x48
-
     BSC0_S = CLEAR_STATUS;		// Reset status bits (see #define)
     BSC0_C = START_READ;    	// Start Read after clearing FIFO (see #define)
-
     wait_i2c_done();
 
     short tmp;
-
     int i = 0;	
-    for(i=0; i < 3; i++) 		// Accelerometer
+    for(i=0; i<3; i++) 			// Gyroscope
     {
 		tmp = BSC0_FIFO << 8;	
 		tmp += BSC0_FIFO;
-		accData[i] = tmp;
+		gyrData[i] = tmp;
     }
     
     tmp = BSC0_FIFO << 8; 		// Temperature
     tmp += BSC0_FIFO;
 
-    for(i=0; i < 3; i++)		// Gyroscope
+    for(i=0; i<3; i++)			// Accelerometer
     {
 		tmp = BSC0_FIFO << 8;
 		tmp += BSC0_FIFO;
-		gyrData[i] = tmp;
+		accData[i] = tmp;
     }
     
-    printf("acc_XOUT: %d     acc_YOUT: %d     acc_ZOUT: %d\n", 
-		accData[0], accData[1], accData[2]);
-	printf("gyr_XOUT: %d     gyr_YOUT: %d     gyr_ZOUT: %d\n", 
-		gyrData[0], gyrData[1], gyrData[2]);    
+    printf("gyr_XOUT: %.2f\t    gyr_YOUT: %.2f\t gyr_ZOUT: %.2f\n", 
+		((float)gyrData[0]/ACCELEROMETER_SENSITIVITY)*90, 
+		((float)gyrData[1]/ACCELEROMETER_SENSITIVITY)*90, 
+		((float)gyrData[2]/ACCELEROMETER_SENSITIVITY)*90);
+	
+	//printf("acc_XOUT: %.2f\t    acc_YOUT: %.2f\t acc_ZOUT: %.2f\n", 
+		//(float)accData[0]/GYROSCOPE_SENSITIVITY, 
+		//(float)accData[1]/GYROSCOPE_SENSITIVITY, 
+		//(float)accData[2]/GYROSCOPE_SENSITIVITY); 
+	
+	sleep(1);
 	
 	// accelero messurement registers 
     //0x3B;    		ACCEL_XOUT[15:8]
@@ -258,19 +268,11 @@ int main(int argc, char *argv[])
     MPU6050_Init();
     printf("MPU6050 initialized.\n");
  
-    // Global variables
-    short accData[3], gyrData[3];      	// Short is a 16 bit int!
+    // Global variables    
     short tmp;
     float time = 0;
     struct timespec tp;
-    long startTime, procesTime;
-
-	accData[0] = 0;
-	accData[1] = 0;
-	accData[2] = 0;
-	gyrData[0] = 0;
-	gyrData[1] = 0;
-	gyrData[2] = 0;
+    long startTime, procesTime;	
 
     while(1)
     {
@@ -279,7 +281,7 @@ int main(int argc, char *argv[])
 		startTime = tp.tv_sec*1000000000 + tp.tv_nsec;
 
 		// Read MPU6050 sensor
-		MPU6050_Read(accData, gyrData);
+		MPU6050_Read();
     }
 }
 
