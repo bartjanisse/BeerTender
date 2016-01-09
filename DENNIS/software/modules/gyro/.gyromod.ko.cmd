@@ -1,0 +1,1 @@
+cmd_/home/student/fontys/prt/modules/gyro/gyromod.ko := /home/student/buildroot_lin_ver/tools-master/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin/arm-bcm2708-linux-gnueabi-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/student/fontys/prt/modules/gyro/gyromod.ko /home/student/fontys/prt/modules/gyro/gyromod.o /home/student/fontys/prt/modules/gyro/gyromod.mod.o

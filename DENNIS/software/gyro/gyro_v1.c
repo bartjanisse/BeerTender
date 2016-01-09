@@ -1,26 +1,3 @@
-/*
- * gyro.c
- * AUTHOR: Dennis Jessurun
- * use "make" to build this module.
- * use "make install" to copy the gyro program to the Pi /bin directory
- * 
- * Accelero messurement registers:
- *   0x3B;    		ACCEL_XOUT[15:8]
- *   0x3C;			ACCEL_XOUT[7:0]
- *   0x3D;    		ACCEL_YOUT[15:8]
- *   0x3E;			ACCEL_YOUT[7:0]
- *   0x3F;    		ACCEL_ZOUT[15:8]
- *   0x40;			ACCEL_ZOUT[7:0]
- *   
- * Gyro messurement registers 
- *   0x43;    		GYRO_XOUT[15:8]
- *   0x44;			GYRO_XOUT[7:0]
- *   0x45;    		GYRO_YOUT[15:8]
- *   0x46;			GYRO_YOUT[7:0]
- *   0x47;    		GYRO_ZOUT[15:8]
- *   0x48;			GYRO_ZOUT[7:0]
- */
-
 #include <time.h>
 #include <math.h>
 #include <stdio.h>
@@ -41,7 +18,7 @@
 
 // MPU macros
 //One of these addresses should work. Depends on module HW address
-#define MPU6050_ADDR 	0x68	// reg 104 7 bit adres 
+#define MPU6050_ADDR 	0x68	// 7 bit adres 
 //#define MPU6050_ADDR 	0x69    // reg 105 
 #define CONFIG 			0x1A	// reg 26
 #define ACCEL_CONFIG 	0x1C	// reg 28
@@ -64,7 +41,7 @@
 #define BSC_C_READ    	1
 #define START_READ    	BSC_C_I2CEN|BSC_C_ST|BSC_C_CLEAR|BSC_C_READ
 #define START_WRITE   	BSC_C_I2CEN|BSC_C_ST
-#define BSC_S_CLKT		(1 << 9)
+#define BSC_S_CLKT	(1 << 9)
 #define BSC_S_ERR    	(1 << 8)
 #define BSC_S_RXF    	(1 << 7)
 #define BSC_S_TXE    	(1 << 6)
@@ -77,20 +54,17 @@
 #define CLEAR_STATUS    BSC_S_CLKT|BSC_S_ERR|BSC_S_DONE
 #define I2C_SLV_DO		0x64
 
-// GPIO setup macros.
-// GPIO_SET: 	Get status of a Group of Pins (atomic). Reads the level of the given pins. 
-// GPIO_CLEAR: 	Set a Group of Pins (atomic). Set one or more pins of the given GPIO port.
-// GPIO_READ: 	Get status of a Group of Pins (atomic). Reads the level of the given pins.
-#define INP_GPIO(g) 		*(gpio.addr + ((g)/10)) &= ~(7<<(((g)%10)*3))
-#define OUT_GPIO(g) 		*(gpio.addr + ((g)/10)) |=  (1<<(((g)%10)*3))
-#define SET_GPIO_ALT(g,a) 	*(gpio.addr + (((g)/10))) |= (((a)<=3?(a) + 4:(a)==4?3:2)<<(((g)%10)*3))
-#define GPIO_SET 			*(gpio.addr + 7)  // sets   bits which are 1 ignores bits which are 0 
-#define GPIO_CLR 			*(gpio.addr + 10) // clears bits which are 1 ignores bits which are 0
-#define GPIO_READ(g) 		*(gpio.addr + 13) &= (1<<(g))
+// GPIO setup macros. Always use INP_GPIO(x) before using OUT_GPIO(x) or SET_GPIO_ALT(x,y)
+#define INP_GPIO(g) 	*(gpio.addr + ((g)/10)) &= ~(7<<(((g)%10)*3))
+#define OUT_GPIO(g) 	*(gpio.addr + ((g)/10)) |=  (1<<(((g)%10)*3))
+#define SET_GPIO_ALT(g,a) *(gpio.addr + (((g)/10))) |= (((a)<=3?(a) + 4:(a)==4?3:2)<<(((g)%10)*3))
+#define GPIO_SET 	*(gpio.addr + 7)  // sets   bits which are 1 ignores bits which are 0
+#define GPIO_CLR 	*(gpio.addr + 10) // clears bits which are 1 ignores bits which are 0
+#define GPIO_READ(g) 	*(gpio.addr + 13) &= (1<<(g))
 
 // Global macros
-#define ACCELEROMETER_SENSITIVITY 	8192.0	// Datasheet p.13 (6.1 gyro specifications)
-#define GYROSCOPE_SENSITIVITY 		65.5	// Datasheet p.12 (6.2 accelero specifications)
+#define ACCELEROMETER_SENSITIVITY 	8192.0
+#define GYROSCOPE_SENSITIVITY 		65.536
 #define filterConstant 				0.10 	// Complementary filter
 #define PAGE_SIZE 		(4*1024)
 #define BLOCK_SIZE 		(4*1024)
@@ -106,7 +80,7 @@
 
 #ifdef RPI2
 #define BCM2708_PERI_BASE       0x3F000000
-#define GPIO_BASE               (BCM2708_PERI_BASE + 0x200000)	// GPIO controller
+#define GPIO_BASE               (BCM2708_PERI_BASE + 0x200000)	// GPIO controller. Maybe wrong. Need to be tested.
 #define BSC0_BASE 				(BCM2708_PERI_BASE + 0x804000)	// I2C controller	
 #endif	
 
@@ -121,34 +95,28 @@ struct bcm2835_peripheral {
 struct bcm2835_peripheral gpio = {GPIO_BASE};
 struct bcm2835_peripheral bsc0 = {BSC0_BASE};
 
-/**
- * wait_i2c_done() - Function to wait for the I2C transaction to complete
- */
+// Function to wait for the I2C transaction to complete
 void wait_i2c_done() {
-	//Wait till done, let's use a timeout just in case
-	int timeout = 50;
-	while((!((BSC0_S) & BSC_S_DONE)) && --timeout) {
-		usleep(1000);
-	}
-	if(timeout == 0)
-		printf("wait_i2c_done() timeout. Something went wrong.\n");
+        //Wait till done, let's use a timeout just in case
+        int timeout = 50;
+        while((!((BSC0_S) & BSC_S_DONE)) && --timeout) {
+            usleep(1000);
+        }
+        if(timeout == 0)
+            printf("wait_i2c_done() timeout. Something went wrong.\n");
 }
 
-/**
- * i2c_init() - Function to initialize the I2C pins
- */
-void i2c_init() {  
-	// Always use INP_GPIO(x) before using OUT_GPIO(x) or SET_GPIO_ALT(x,y)  
+void i2c_init() {
+    
     INP_GPIO(2);
 	SET_GPIO_ALT(2, 0);
 	INP_GPIO(3);
 	SET_GPIO_ALT(3, 0);
 } 
 
-// RPI
-/**
- * map_peripheral() - Exposes the physical address defined in the passed structure using mmap on /dev/mem
- */
+/****  RPI  **********************************************************/
+
+// Exposes the physical address defined in the passed structure using mmap on /dev/mem
 int map_peripheral(struct bcm2835_peripheral *p) {
    // Open /dev/mem
    if ((p->mem_fd = open("/dev/mem", O_RDWR|O_SYNC) ) < 0) {
@@ -181,7 +149,7 @@ void unmap_peripheral(struct bcm2835_peripheral *p) {
     close(p->mem_fd);
 }
 
-// MPU
+/****  MPU  **********************************************************/
 void MPU6050_SetRegister(unsigned char regAddr, unsigned char regValue)
 {
     // See datasheet (PS) page 36: Single Byte Write Sequence
@@ -203,7 +171,7 @@ void MPU6050_SetRegister(unsigned char regAddr, unsigned char regValue)
 
 void MPU6050_Init()
 {
-    //MPU6050_SetRegister(PWR_MGMT_1, 0x80);	// Device Reset
+    //MPU6050_SetRegister(PWR_MGMT_1, 0x80);		// Device Reset
     MPU6050_SetRegister(PWR_MGMT_1, 0x00); 		// Clear sleep bit
     MPU6050_SetRegister(CONFIG, 0x00); 	
     MPU6050_SetRegister(GYRO_CONFIG, 0x08);
@@ -211,7 +179,7 @@ void MPU6050_Init()
 }
 
 void MPU6050_Read() {
-    // See datasheet (PS) p.37: Burst Byte Read Sequence
+    // See datasheet (PS) page 37: Burst Byte Read Sequence
 
     // Master:   S  AD+W       RA       S  AD+R           ACK        NACK  P
     // Slave :            ACK      ACK          ACK DATA       DATA
@@ -253,83 +221,67 @@ void MPU6050_Read() {
 		accData[i] = tmp;
     }
     
-    printf("gyr_XOUT: %.2f\t\t gyr_YOUT: %.2f\t gyr_ZOUT: %.2f\n", 
+    printf("gyr_XOUT: %.2f\t    gyr_YOUT: %.2f\t gyr_ZOUT: %.2f\n", 
 		((float)gyrData[0]/ACCELEROMETER_SENSITIVITY)*90, 
 		((float)gyrData[1]/ACCELEROMETER_SENSITIVITY)*90, 
 		((float)gyrData[2]/ACCELEROMETER_SENSITIVITY)*90);
 	
-	//printf("acc_XOUT: %.2f\t\t acc_YOUT: %.2f\t acc_ZOUT: %.2f\n", 
+	//printf("acc_XOUT: %.2f\t    acc_YOUT: %.2f\t acc_ZOUT: %.2f\n", 
 		//(float)accData[0]/GYROSCOPE_SENSITIVITY, 
 		//(float)accData[1]/GYROSCOPE_SENSITIVITY, 
 		//(float)accData[2]/GYROSCOPE_SENSITIVITY); 
 	
 	sleep(1);
+	
+	// accelero messurement registers 
+    //0x3B;    		ACCEL_XOUT[15:8]
+    //0x3C;			ACCEL_XOUT[7:0]
+    //0x3D;    		ACCEL_YOUT[15:8]
+    //0x3E;			ACCEL_YOUT[7:0]
+    //0x3F;    		ACCEL_ZOUT[15:8]
+    //0x40;			ACCEL_ZOUT[7:0]
     
-    // Write data into file "gyro.dat" in order
-    // to save the data for analysing purposes.
-    // Open with param "a" for appending data.
-	FILE *fp;
-	fp = fopen("gyro.dat", "a");
-	if (fp == NULL) {
-		printf("failed to open gyro.dat\n");
-		exit(0);
-	}	
-	for(i=0; i<3; i++) {
-		fprintf(fp, "gyro: %.2f\n", ((float)gyrData[i]/ACCELEROMETER_SENSITIVITY)*90);
-	}	
-	fclose(fp);
+    // gyro messurement registers 
+    //0x43;    		GYRO_XOUT[15:8]
+    //0x44;			GYRO_XOUT[7:0]
+    //0x45;    		GYRO_YOUT[15:8]
+    //0x46;			GYRO_YOUT[7:0]
+    //0x47;    		GYRO_ZOUT[15:8]
+    //0x48;			GYRO_ZOUT[7:0]
 }
 
 int main(int argc, char *argv[])
 {
-    // Check if the kernel module is loaded
-    int fd;
-	fd = open("/dev/gyromod", O_RDWR);
-	if(fd < 0) {
-		printf("Error opening file. Gyro module not loaded.\n");
-		return(-1);
-	}   
-	else {     
-		// Close file
-		close(fd);
-		
-		// Global variables    
-		short tmp;
-		float time = 0;
-		struct timespec tp;
-		long startTime, procesTime;	  
-		char filename[] = "gyro.dat";
-		
-		// Map memory areas			
-		if(map_peripheral(&gpio) == -1) {
-			printf("Failed to map the physical GPIO registers into the virtual memory space.\n");
-			return -1;
-		}
-		if(map_peripheral(&bsc0) == -1) {
-			printf("Failed to map the physical BSC0 (I2C) registers into the virtual memory space.\n");
-			return -1;
-		}
-		
-		// Always remove "gyro.dat" when program is started.
-		// This file is created when measurements are started. 
-		remove(filename);
-		printf("File \"%s\" successfully removed.\n", filename);
-		
-		/* BSC0 is on GPIO 2 & 3 */
-		i2c_init();
-			
-		MPU6050_Init();
-		printf("MPU6050 initialized.\n");
+    // Map memory areas			
+    if(map_peripheral(&gpio) == -1) {
+        printf("Failed to map the physical GPIO registers into the virtual memory space.\n");
+        return -1;
+    }
+    if(map_peripheral(&bsc0) == -1) {
+        printf("Failed to map the physical BSC0 (I2C) registers into the virtual memory space.\n");
+        return -1;
+    }
 	
-		while(1)
-		{	
-			// Get current time
-			clock_gettime(CLOCK_REALTIME, &tp);
-			startTime = tp.tv_sec*1000000000 + tp.tv_nsec;
+    /* BSC0 is on GPIO 0 & 1 */
+    i2c_init();
+		
+    MPU6050_Init();
+    printf("MPU6050 initialized.\n");
+ 
+    // Global variables    
+    short tmp;
+    float time = 0;
+    struct timespec tp;
+    long startTime, procesTime;	
 
-			// Read MPU6050 sensor
-			MPU6050_Read();		
-		}
-	}    
+    while(1)
+    {
+		// Get current time
+		clock_gettime(CLOCK_REALTIME, &tp);
+		startTime = tp.tv_sec*1000000000 + tp.tv_nsec;
+
+		// Read MPU6050 sensor
+		MPU6050_Read();
+    }
 }
 

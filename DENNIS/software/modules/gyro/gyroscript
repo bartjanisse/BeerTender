@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# Script for gyro module
+#
+
+case "$1" in
+  start)
+ 	echo $'Loading module...\n'
+	insmod /bin/gyromod.ko
+	echo $'Creating device file...\n'
+	sleep 1
+	mknod /dev/gyromod c 247 0
+	cat /var/log/messages | tail -6
+	echo $'\nTry one of the following params:\n'
+	echo $'  on - to start measuring the angle'
+	echo $'  off - to stop measuring'
+	echo $'  state - to get te actual gyro state\n'
+	;;
+  stop)
+	echo -n $'Stopping module...\n'
+	rmmod gyromod
+	echo $'Removing device file...\n'
+	rm /dev/gyromod
+	echo $'Succesfully stopped the module and removed the device file.'
+	;;
+  info)
+	cat /var/log/messages | tail -20
+	;;
+  on)
+	echo "1" > /dev/gyromod
+	;;
+  off)
+	echo "0" > /dev/gyromod
+	;;	
+  state)
+    cat /dev/gyromod
+	cat /var/log/messages | tail -1
+	cat /var/log/messages | tail -1
+	;;
+  restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|info|on|off|state}"
+	exit 1
+esac
+
+exit $?
