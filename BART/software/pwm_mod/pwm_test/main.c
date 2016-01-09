@@ -22,6 +22,7 @@
 /* 
  * Functions for the ioctl calls 
  */
+ /*
 void pwm_echo(int file_desc)
 {
 	int i;
@@ -32,18 +33,46 @@ void pwm_echo(int file_desc)
 	i = ioctl(file_desc, PWM_ECHO, 122);
 	
 	printf("received %d back\n", i);
-}
+}*/
 
 void pwm_set(int file_desc)
 {
-	struct PWM pwm1;
+	struct PWM_DATA pwm1;
 	
-	pwm1.id = 1;
-	pwm1.gpio = 18;
+	pwm1.id = 0;
+	pwm1.gpio = 14;
+	pwm1.cycle = 100000;
+	pwm1.duty = 500;
 	
 	printf("pwm_set\n");
 	
 	ioctl(file_desc, PWM_SET, &pwm1);
+}
+
+void pwm_init(int file_desc)
+{
+	struct PWM_DATA pwm1;
+	
+	pwm1.id = 0;
+	pwm1.gpio = 14;
+	pwm1.cycle = 100000;
+	pwm1.duty = 500;
+	
+	printf("pwm_init\n");
+	
+	ioctl(file_desc, PWM_INIT, &pwm1);
+}
+
+void clock_set(int file_desc)
+{
+	struct CLOCK clock;
+	
+	clock.source = 1;
+	clock.divider = 96;
+	
+	printf("clk_set\n");
+	
+	ioctl(file_desc, CLK_SET, &clock);
 }
 
 /* 
@@ -51,19 +80,20 @@ void pwm_set(int file_desc)
  */
 int main()
 {
-	int file_desc;
+	int pwm_file_desc;
 	
-	file_desc = open(PWM_DEVICE_NAME, 0);
-	if (file_desc < 0) {
+	pwm_file_desc = open(PWM_DEVICE_NAME, 0);
+	if (pwm_file_desc < 0) {
 		printf("Can't open device file: %s\n", PWM_DEVICE_NAME);
 		exit(-1);
 	}
-
-	pwm_echo(file_desc);
+	clock_set(pwm_file_desc);
 	sleep(1);
-	pwm_set(file_desc);
+	pwm_init(pwm_file_desc);
+	sleep(1);
+	pwm_set(pwm_file_desc);
 
-	close(file_desc);
+	close(pwm_file_desc);
 	
 	return 0;
 }

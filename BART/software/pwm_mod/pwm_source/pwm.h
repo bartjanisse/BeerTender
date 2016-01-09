@@ -13,9 +13,9 @@
 #define _PWM_H_
 
 /*
- * The struct used to pass data via the following ioctl. 
+ * The structs used to pass data via the following ioctl. 
  */
-struct PWM {
+struct PWM_DATA {
 	unsigned int id;
 	unsigned int gpio;
 	unsigned int enable;
@@ -34,9 +34,9 @@ struct CLOCK {
 #define PWM_MAGIC 'K'
 
 /* ioctl() calls that are permitted to the /dev/pwm interface. */
-#define PWM_SET  _IOW(PWM_MAGIC, 0, struct PWM)
-#define CLK_SET  _IOR(PWM_MAGIC, 1, struct CLOCK)
-#define PWM_ECHO _IOWR(PWM_MAGIC, 2, int) // FOR TESTING ONLY !!!!
+#define CLK_SET  _IOW(PWM_MAGIC, 0, struct CLOCK)
+#define PWM_INIT _IOW(PWM_MAGIC, 1, struct PWM_DATA)
+#define PWM_SET  _IOW(PWM_MAGIC, 2, struct PWM_DATA)
 
 #define PWM_MAX_IOCTL 2
 

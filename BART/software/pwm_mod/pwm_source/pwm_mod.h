@@ -23,11 +23,25 @@ MODULE_DESCRIPTION("PWM module");
 
 #define SUCCESS 		0
 
+struct PWM {
+	unsigned int gpio;
+	unsigned int msen;
+	unsigned int pwen;
+	unsigned int rng;
+	unsigned int dat;
+	unsigned int irq_nr;
+	irq_handler_t handler;
+	//struct PWM_DATA *data;
+	void *dev;
+};
+
 /* Function prototypes */
 extern void pwm_gpio_init(void); 
-extern void pwm_validate(struct PWM *);
+//extern void pwm_validate(struct PWM *);
+
 extern void pwm_start(struct PWM *);
 extern void pwm_stop(struct PWM *);
-extern void pwm_set(struct PWM *); 
-
+//extern void pwm_set(struct PWM *); 
+void pwm_set(struct PWM *pwm, struct PWM_DATA *);
+void irq_config(struct PWM *p, struct PWM_DATA *);
 #endif /* _PWM_MOD_H_ */
