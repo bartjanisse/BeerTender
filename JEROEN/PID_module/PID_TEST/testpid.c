@@ -32,13 +32,14 @@ void pid_set(int file_desc)
 	ioctl(file_desc, PID_SET, &pidsettings);
 }
 
-float pid_get(int file_desc, float Sp, float Pv)
+float pid_get(int file_desc, float Sp, float Pv, int reset)
 {
 	int returnvalue;
 	struct INPUT input;
 	
 	input.setpoint = Sp;
 	input.processValue = Pv;
+	input.reset = reset;
 	
 	printf("pid_get: ");
 	

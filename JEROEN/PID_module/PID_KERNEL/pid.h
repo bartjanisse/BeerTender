@@ -23,8 +23,12 @@ struct PID {
 };
 
 struct INPUT {
+	// the setpoint for the pid
 	int setpoint;
+	// the processvalue for the pid
 	int processValue;
+	// reset for the statics, set 1 to reset
+	int reset;
 };
 
 

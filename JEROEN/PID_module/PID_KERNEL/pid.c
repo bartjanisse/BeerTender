@@ -90,9 +90,9 @@ static long pid_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			
 			mutex_lock(&pid_mutex);
 			
-			printk(KERN_INFO "PID setpoint = %d PID value = %d\n", pidinput.setpoint, pidinput.processValue);
+			printk(KERN_INFO "PID setpoint = %d PID value = %d reset = %d\n", pidinput.setpoint, pidinput.processValue, pidinput.reset);
 			
-			ret = PIDcal(pidinput.setpoint, pidinput.processValue);
+			ret = PIDcal(pidinput.setpoint, pidinput.processValue, pidinput.reset);
 			
 			mutex_unlock(&pid_mutex);
 			
@@ -146,10 +146,17 @@ void cleanup_module(void)
  * PIDcal() is doing the calculation of the pid controller
  * 
  */
-int PIDcal(int SPn, int PVn)
+int PIDcal(int SPn, int PVn, int reset)
 {
 	static int MX = 0;
 	static int PVnn = 0;
+	
+	if (reset == 1)
+	{
+		MX = 0;
+		PVnn = 0;
+	}
+	
 	int output, MPn, MIn, MDn;
 	
 	// proportional part
