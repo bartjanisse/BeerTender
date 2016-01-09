@@ -1,0 +1,52 @@
+/************  Commands  ************/
+
+// make file executable
+	chmod +x filename
+
+// show current path
+	pwd
+
+// Report file system disk space usage
+	df
+
+// USB
+	lsusb -v
+	lsusb -s ID -v
+
+// Check free disk space
+	df -h
+
+// Empty trash
+	trash-empty
+
+// Find files
+	env | grep filename
+
+// Modules
+
+	All modules loaded into the kernel are listed in /proc/modules
+		- cat /proc/modules
+
+	Take a look at /var/log/messages just to see that it got logged to your system logfile.
+		- cat /var/log/messages 	(on the Pi2)
+		- cat /var/log/syslog			(on Lubuntu)
+
+	lsmod  						(reads file: /proc/modules)
+	insmod ./<filename>.ko  		(inserts module into kernel space)
+	rmmod <filename> 			(removes module from kernel space)
+	modinfo <filename>.ko		(information about module)
+	mknod						(create new device file)
+		- mknod /dev/coffee/ c 12 2
+	
+
+/************  Notes  ************/
+
+Using Vi
+	Insert
+		- Press i to enter Insert mode
+		- To leave insert mode press ESC
+	Save
+		- type in 	:x ( you must not be in insert mode)
+	Leave
+		- type in 	:q
+		- type in	:q! (leave without saving) 

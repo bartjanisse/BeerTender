@@ -1,0 +1,26 @@
+/* Raspberry Pi */
+
+ip address Pi B+: 	10.0.0.42
+ip address Pi 2: 	192.168.123.42
+ip address Pi rasbian: 169.254.70.182 ??
+
+// shutdown raspberry pi
+	halt or shutdown
+
+// reboot raspberry pi
+	reboot
+ 
+// connect to raspberry pi
+	ssh root@10.0.0.42
+	ssh root@192.168.123.42 	// pi2
+
+// copy file to rasberry pi
+	scp xpad root@10.0.0.42:/bin
+	scp cgi_mq root@10.0.0.42:/var/www/cgi-bin
+
+//cross compile
+	arm-linux-gcc filename.c -o newfilename
+	arm-linux-gcc myprog.c -o myprog -lrt -lpthread -lusb-1.0
+
+// mqueue
+	cat /proc/sys/fs/mqueue/msgsize_default

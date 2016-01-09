@@ -1,0 +1,20 @@
+Username: djessurun
+Password: TentStokken01
+
+student@student-fontys:~$ git config --global user.name "djessurun"
+student@student-fontys:~$ git config --global user.email "djessurun@gmail.com"
+
+
+/****  Checkin changes  ****/
+	
+	- Select all files in Unchanged Changes
+	- Go to Menu > Commit > Stage changed files to commit
+	- write comment
+	- press commit button
+	- Go to Remote > Push
+	- Click Push button
+
+
+/****  Merge changes  ****/
+
+	- Go to Menu > Merge > Local Merge
