@@ -1,5 +1,5 @@
 /*
- * (C) 2015 - A.W. Janisse
+ * (C) 2016 - A.W. Janisse
  * 
  * pwm_mod.h - Header file with the module definitions.
  * 
@@ -19,7 +19,7 @@ MODULE_DESCRIPTION("PWM module");
 
 #define PWM_0_GPIO		12	/* Since GPIO 12 is not connected on the Raspberry Pi pcb we use it as pwm */
 #define PWM_1_GPIO		13	/* Since GPIO 13 is not connected on the Raspberry Pi pcb we use it as pwm */
-#define GPIO_ALTFUN		0	/* Alternate function for PWM */
+#define GPIO_ALTFUN		0	/* GPIO alternate function for PWM */
 
 #define SUCCESS 		0
 
@@ -36,11 +36,4 @@ struct PWM {
 	void *dev;
 };
 
-/* Function prototypes */
-/*
-extern void pwm_set_enable(struct PWM *, struct PWM_DATA *);
-extern void pwm_set_data(struct PWM *, struct PWM_DATA *);
-extern void irq_config(struct PWM *, struct PWM_DATA *);
-extern void irq_release(struct PWM *); 
-*/
 #endif /* _PWM_MOD_H_ */

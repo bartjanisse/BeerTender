@@ -234,17 +234,30 @@ static void clk_set(struct CLOCK *clock)
 /**
  * Function map_registers() - 
  */
-static void map_registers(void) 
+static unsigned int registers_map(void) 
 {
-	gpio_addr = (volatile unsigned int *)ioremap(GPIO_BASE,  4096);
-	pwm_addr  = (volatile unsigned int *)ioremap(PWM_BASE,   4096);
-	clk_addr  = (volatile unsigned int *)ioremap(CLOCK_BASE, 4096);
+	gpio_addr = (volatile unsigned int *)ioremap(GPIO_BASE,  4096)
+	if (!gpio_addr) {
+		return -1;
+	}
+
+	pwm_addr  = (volatile unsigned int *)ioremap(PWM_BASE,   4096)
+	if (!pwm_addr) {
+		return -1;
+	}
+
+	clk_addr  = (volatile unsigned int *)ioremap(CLOCK_BASE, 4096)
+	if (!clk_addr) {
+		return -1;
+	}
+	
+	return SUCCESS;
 }
 
 /**
  * Function unmap_registers() - 
  */
-static void unmap_registers(void) 
+static void registers_unmap(void) 
 {
 	if (gpio_addr) {
         iounmap(gpio_addr);
@@ -393,10 +406,13 @@ int init_module(void)
 	/* Register device and report errors */
 	if ((major= register_chrdev(0, PWM_DEVICE_NAME, &pwm_fops)) < 0) {
 		printk(KERN_ALERT "Registering char device failed with %d\n", major);
-		return major;
+		goto error;
 	}
     
-    map_registers(); 
+    if (registers_map() != SUCCESS) {
+		printk(KERN_ALERT "Mapping registers failed\n");
+		goto error;
+	} 
 
 	/* These GPIO's are used by the PWM's and but not fysically */
 	/* connected on the Raspberry circuit board connector. */
@@ -405,13 +421,21 @@ int init_module(void)
     
     pwm0 = pwm_create(PWM_CTL_MSEN1, PWM_CTL_PWEN1, PWM_RNG1, PWM_DAT1, (irq_handler_t)pwm_0_irq_handler, PWM_0_GPIO, PWM0_NAME, PWM0_DEV);
     pwm1 = pwm_create(PWM_CTL_MSEN2, PWM_CTL_PWEN2, PWM_RNG2, PWM_DAT2, (irq_handler_t)pwm_1_irq_handler, PWM_1_GPIO, PWM1_NAME, PWM1_DEV);
-    /* Check if pwm0 and pwm1 is created and report errors */
-    if((!pwm0) || (!pwm1)) {
+    /* Check if pwm0 and pwm1 are created and report errors */
+    if((!pwm0) || (!pwm1)) {	
 		printk(KERN_ALERT "Creating PWM's failed\n");
+		goto error;
 	}
            
     printk(KERN_INFO "Succesfully registered module %s\n", PWM_DEVICE_NAME); 
+	
 	return SUCCESS;
+
+error:
+	registers_unmap();
+	pwm_destroy(pwm0);
+	pwm_destroy(pwm1);
+	return (-1);
 }
 
 /**
@@ -422,7 +446,7 @@ void cleanup_module(void)
 	pwm_destroy(pwm0);
 	pwm_destroy(pwm1);
 		
-	unmap_registers();
+	registers_unmap();
+	
 	unregister_chrdev(major, DEVICE_NAME);
 }
-

@@ -1,0 +1,16 @@
+/output
+/dl
+/.auto.deps
+*.depend
+*.o
+*.ko
+*.mod.c
+*.mod.o
+*.tar
+/*.patch
+/*.diff
+*.orig
+*.rej
+*~
+*.pyc
+

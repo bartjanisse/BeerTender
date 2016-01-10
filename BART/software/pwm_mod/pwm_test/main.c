@@ -19,24 +19,12 @@
 #include <unistd.h>			/* exit */
 #include <sys/ioctl.h>		/* ioctl */
 
+struct PWM_DATA pwm1;
+static int pwm_file_desc;
+
 /* 
  * Functions for the ioctl calls 
  */
- /*
-void pwm_echo(int file_desc)
-{
-	int i;
-	//char c;
-
-	printf("pwm_echo: ");
-
-	i = ioctl(file_desc, PWM_ECHO, 122);
-	
-	printf("received %d back\n", i);
-}*/
-
-struct PWM_DATA pwm1;
-static int pwm_file_desc;
 
 void pwm_set(int c, int d)
 {
