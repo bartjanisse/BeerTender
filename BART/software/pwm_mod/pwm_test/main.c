@@ -35,35 +35,36 @@ void pwm_echo(int file_desc)
 	printf("received %d back\n", i);
 }*/
 
-void pwm_set(int file_desc)
+struct PWM_DATA pwm1;
+static int pwm_file_desc;
+
+void pwm_set(int c, int d)
 {
-	struct PWM_DATA pwm1;
+	pwm1.id 	= 0;//0;
+	pwm1.gpio 	= 14;
+	pwm1.cycle 	= c;
+	pwm1.duty 	= d;
+	pwm1.enable = 0;
 	
-	pwm1.id = 0;
-	pwm1.gpio = 14;
-	pwm1.cycle = 100000;
-	pwm1.duty = 500;
+	printf("pwm_set. cycle = %d, duty = %d\n", c, d);
 	
-	printf("pwm_set\n");
-	
-	ioctl(file_desc, PWM_SET, &pwm1);
+	ioctl(pwm_file_desc, PWM_SET, &pwm1);
 }
 
-void pwm_init(int file_desc)
+void pwm_init()
 {
-	struct PWM_DATA pwm1;
-	
-	pwm1.id = 0;
-	pwm1.gpio = 14;
-	pwm1.cycle = 100000;
-	pwm1.duty = 500;
+	pwm1.id	= 0;//0;
+	pwm1.gpio	= 14;
+	pwm1.cycle	= 10000;
+	pwm1.duty	= 100;
+	pwm1.enable = 0;
 	
 	printf("pwm_init\n");
 	
-	ioctl(file_desc, PWM_INIT, &pwm1);
+	ioctl(pwm_file_desc, PWM_INIT, &pwm1);
 }
 
-void clock_set(int file_desc)
+void clock_set()
 {
 	struct CLOCK clock;
 	
@@ -72,7 +73,36 @@ void clock_set(int file_desc)
 	
 	printf("clk_set\n");
 	
-	ioctl(file_desc, CLK_SET, &clock);
+	ioctl(pwm_file_desc, CLK_SET, &clock);
+}
+
+void pwm_start()
+{
+	pwm1.enable = 1;
+	
+	printf("pwm_start\n");
+	
+	ioctl(pwm_file_desc, PWM_ENABLE, &pwm1);
+}
+
+void pwm_stop()
+{
+	pwm1.enable = 0;
+	
+	printf("pwm_stop\n");
+	
+	ioctl(pwm_file_desc, PWM_ENABLE, &pwm1);
+}
+
+void pwm_cycle(int c)
+{
+	int d = 0;
+	
+	for(d = 0; d<10; d++)
+	{
+		pwm_set(c, d * 100);
+		sleep(2);
+	}
 }
 
 /* 
@@ -80,19 +110,28 @@ void clock_set(int file_desc)
  */
 int main()
 {
-	int pwm_file_desc;
+	
 	
 	pwm_file_desc = open(PWM_DEVICE_NAME, 0);
 	if (pwm_file_desc < 0) {
 		printf("Can't open device file: %s\n", PWM_DEVICE_NAME);
 		exit(-1);
 	}
-	clock_set(pwm_file_desc);
+	clock_set();
 	sleep(1);
-	pwm_init(pwm_file_desc);
+	pwm_init();
 	sleep(1);
-	pwm_set(pwm_file_desc);
+	pwm_set(10000, 0);
+	pwm_start();
+	
+	pwm_cycle(10000);
+	pwm_cycle(1000);
 
+	pwm_stop();
+	sleep(2);
+	pwm_start();
+	sleep(2);
+	pwm_stop();
 	close(pwm_file_desc);
 	
 	return 0;

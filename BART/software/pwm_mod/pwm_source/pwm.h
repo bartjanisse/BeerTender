@@ -34,10 +34,11 @@ struct CLOCK {
 #define PWM_MAGIC 'K'
 
 /* ioctl() calls that are permitted to the /dev/pwm interface. */
-#define CLK_SET  _IOW(PWM_MAGIC, 0, struct CLOCK)
-#define PWM_INIT _IOW(PWM_MAGIC, 1, struct PWM_DATA)
-#define PWM_SET  _IOW(PWM_MAGIC, 2, struct PWM_DATA)
+#define CLK_SET  	_IOW(PWM_MAGIC, 0, struct CLOCK)
+#define PWM_INIT 	_IOW(PWM_MAGIC, 1, struct PWM_DATA)
+#define PWM_SET  	_IOW(PWM_MAGIC, 2, struct PWM_DATA)
+#define PWM_ENABLE	_IOW(PWM_MAGIC, 3, struct PWM_DATA)
 
-#define PWM_MAX_IOCTL 2
+#define PWM_MAX_IOCTL 3
 
 #endif /* _PWM_H_ */

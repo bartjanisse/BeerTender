@@ -29,83 +29,85 @@ static DEFINE_MUTEX(pwm_mutex);			/* Used for critical sections */
 /* ------------------------------------------------------------------ */
 
 /**
- * r_irq_handler() - IRQ handler fired on interrupt
+ * pwm_0_irq_handler() - PWM 0 irq handler fired on interrupt
  */
 static irqreturn_t pwm_0_irq_handler(int irq, void *dev_id, struct pt_regs *regs) 
 {
 	unsigned long flags;
    
-	// disable hard interrupts (remember them in flag 'flags')
+	/* disable hard interrupts (remember them in flag 'flags') */
 	local_irq_save(flags);
 
-	// Set the output
+	/* Set the output */
 	if (GPIO_READ(PWM_0_GPIO)) {
 		GPIO_SET(pwm0->gpio);
 	} else {
 		GPIO_CLR(pwm0->gpio);
 	}
 
-	// restore hard interrupts
+	/* restore hard interrupts */
 	local_irq_restore(flags);
 	
-	
-	printk(KERN_INFO "PWM 0 int\n");
 	return (IRQ_HANDLED);
 }
 
 /**
- * r_irq_handler() - IRQ handler fired on interrupt
+ * pwm_1_irq_handler() - PWM 1 irq handler fired on interrupt
  */
 static irqreturn_t pwm_1_irq_handler(int irq, void *dev_id, struct pt_regs *regs) 
 {
 	unsigned long flags;
    
-	// disable hard interrupts (remember them in flag 'flags')
+	/* disable hard interrupts (remember them in flag 'flags') */
 	local_irq_save(flags);
 
-	// Set the output
-	if (GPIO_READ(PWM_0_GPIO)) {
-		GPIO_SET(pwm0->gpio);
+	/* Set the output */
+	if (GPIO_READ(PWM_1_GPIO)) {
+		GPIO_SET(pwm1->gpio);
 	} else {
-		GPIO_CLR(pwm0->gpio);
+		GPIO_CLR(pwm1->gpio);
 	}
 
-	// restore hard interrupts
+	/* restore hard interrupts */
 	local_irq_restore(flags);
 
 	return (IRQ_HANDLED);
 }
 
 /**
+ * irq_release() - This function releases interrupts.            
+ */
+static void irq_release(struct PWM *pwm) 
+{
+	if (pwm->irq_nr) {
+		free_irq(pwm->irq_nr, pwm->dev);
+		pwm->irq_nr = 0;
+	}
+}
+
+/**
  * irq_config() - This function configures interrupts.
  */
-void irq_config(struct PWM *p, struct PWM_DATA *data)
+static void irq_config(struct PWM *pwm, struct PWM_DATA *data)
 {
-	// Store GPIO in PWM struct so it is available in the interrupt handler.
-	p->gpio = data->gpio;
+	/* Store GPIO in PWM struct so it is available in the interrupt handler */
+	pwm->gpio = data->gpio;
+	/* Release irq if it was assigned */
+	irq_release(pwm);
 	
-	//see .../arch/arm/mach-bcm2709/include/mach/gpio.h and irqs.h
-	if ((p->irq_nr = gpio_to_irq(data->gpio)) < 0 ) {
+	/* see .../arch/arm/mach-bcm2709/include/mach/gpio.h and irqs.h */
+	if ((pwm->irq_nr = gpio_to_irq(pwm->pwm_gpio)) < 0 ) {
 		printk(KERN_CRIT "GPIO to IRQ mapping failure for GPIO %d\n", data->gpio);
 		return;
 	}
-	//see ../include/linux/interrupt.h
-	if (request_irq(p->irq_nr, (irq_handler_t)p->handler, IRQF_TRIGGER_RISING|IRQF_TRIGGER_FALLING, PWM0_GPIO_DESC, p->dev)) {
+	/* see ../include/linux/interrupt.h */
+	if (request_irq(pwm->irq_nr, (irq_handler_t)pwm->irq_handler, IRQF_TRIGGER_RISING|IRQF_TRIGGER_FALLING, pwm->name, pwm->dev)) {
 		printk(KERN_CRIT "Irq Request failure\n");
 		return;
 	}
 	
-	printk(KERN_INFO "PWM %d interrupt %d is mapped to GIO %d\n", data->id, p->irq_nr, data->gpio);
+	printk(KERN_INFO "PWM %d interrupt %d is mapped to GPIO %d\n", data->id, pwm->irq_nr, data->gpio);
 }
-
-/**
- * irq_release() - This function releases interrupts.            
- */
-/*void irq_release(unsigned int irq_nr, void *dev_id) 
-{
-	free_irq(irq_nr, dev_id);
-	return;
-}*/
 
 /* ------------------------------------------------------------------ */
 /* PWM functions                                                      */
@@ -120,42 +122,45 @@ void irq_config(struct PWM *p, struct PWM_DATA *data)
  * Since memory allocation is done withe the GPF_KERNEL flag, this
  * is a normal allocation and might block.
  */
-struct PWM *pwm_create(unsigned int msen, 
+static struct PWM *pwm_create(unsigned int msen, 
 						unsigned int pwen,
 						unsigned int rng,
 						unsigned int dat,
 						irq_handler_t handler,
+						unsigned int pwm_gpio,
+						char *name,
 						void *dev)
 {
-	// Allocate memory for the struct
-	struct PWM *p = kmalloc(sizeof(struct PWM), GFP_KERNEL);
-    // If no memory allocated report it and return
-    if(!p) {
+	/* Allocate memory for the struct */
+	struct PWM *pwm = kmalloc(sizeof(struct PWM), GFP_KERNEL);
+    /* If no memory allocated report it and return */
+    if(!pwm) {
 		printk(KERN_CRIT "kmalloc failure!\n");
 		return NULL;
 	}
-	// Assign values
-    p->msen = msen;
-    p->pwen = pwen;
-    p->rng = rng;
-    p->dat = dat;
-    p->handler = handler;
-    p->dev = dev;
-    p->irq_nr = 0;
+	/* Assign values */
+    pwm->msen = msen;
+    pwm->pwen = pwen;
+    pwm->rng = rng;
+    pwm->dat = dat;
+    pwm->irq_handler = handler;
+    pwm->dev = dev;
+    pwm->irq_nr = 0;
+    pwm->name = name;
+    pwm->pwm_gpio = pwm_gpio;
     
-    return p; 
+    return pwm; 
 }
 
 /**
- * Function pwm_destroy() - 
+ * Function pwm_destroy() - Free's the allocated memory and releases
+ * the interrupt for the given PWM. 
  */
-void pwm_destroy(struct PWM *p)
+static void pwm_destroy(struct PWM *pwm)
 {
-	if(p) {
-		if (p->irq_nr) {
-			free_irq(p->irq_nr, p->dev);
-		}
-		kfree(p);
+	if(pwm) {
+		irq_release(pwm);
+		kfree(pwm);
 	}
 }
 
@@ -169,41 +174,31 @@ void pwm_destroy(struct PWM *p)
 }*/
 
 /**
- * Function pwm_start - Starts the given PWM in M/S transmission mode.
- */ 
-void pwm_start(struct PWM *pwm) 
-{
-	*(pwm_addr + PWM_CTL) = pwm->msen | pwm->pwen;
-	
-	printk(KERN_INFO "PWM is started\n");
-}
-
-/**
- * Function pwm_stop() - Stops the given PWM by clearing the enable flag.
+ * Function pwm_set_enable() - Start or stops the given PWM by 
+ * clearing or setting the enable flag. The PWM mode will be 
+ * M/S transmission mode.
  */
-void pwm_stop(struct PWM *pwm) 
+static void pwm_set_enable(struct PWM *pwm, struct PWM_DATA *data) 
 {
-	*(pwm_addr + PWM_CTL) = *(pwm_addr + PWM_CTL) & ~pwm->pwen;
-	
-	printk(KERN_INFO "PWM is stopped\n");
+	if (data->enable) {
+		/* Set enable flag */
+		*(pwm_addr + PWM_CTL) = pwm->msen | pwm->pwen;
+		printk(KERN_INFO "PWM %d started\n", data->id);
+	} else {
+		/* Clear enable flag */
+		*(pwm_addr + PWM_CTL) = *(pwm_addr + PWM_CTL) & ~pwm->pwen;
+		printk(KERN_INFO "PWM %d stopped\n", data->id);
+	}
 }
 
 /**
  * Function to set PWM cycle and duty cycle
  */
-void pwm_set(struct PWM *pwm, struct PWM_DATA *data)
+static void pwm_set_data(struct PWM *pwm, struct PWM_DATA *data)
 {
-	/* disable PWM and start with a clean register */
-	*(pwm_addr + PWM_CTL) = 0; // !!!!!!! KAN NIET OP 0 BEGINNEN we hebben 2x PWM !!!!!!
-	
-	/* needs some time until the PWM module gets disabled */
-	udelay(10);  
-	
 	/* Set the PWM range and PWM dat */
 	*(pwm_addr + pwm->rng) = data->cycle;
 	*(pwm_addr + pwm->dat) = data->cycle / 1000 * data->duty;
-
-	pwm_start(pwm); // ???? Moet dit hier ????
 	
 	printk(KERN_INFO "PWM %d cycle = %d, duty = %d \n", data->id, data->cycle, data->duty);
 }
@@ -215,7 +210,7 @@ void pwm_set(struct PWM *pwm, struct PWM_DATA *data)
 /**
  * clk_set() - 
  */
-void clk_set(struct CLOCK *clock) 
+static void clk_set(struct CLOCK *clock) 
 {	
 	/* Stop clock by killing it. Clearing enable doesn't work */
 	*(clk_addr + CLK_CTL) = CLK_PASSWD | CLK_CTL_KILL;
@@ -322,24 +317,12 @@ static long pwm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			// Set GPIO as output
 			INP_GPIO(data.gpio);
 			OUT_GPIO(data.gpio);
-			
-			// Config the interrupt for the requested pwm
-			/*if (data.id == 0) {
-				pwm0->data = &data;
-				irq_config(pwm0);
-			} else {
-				pwm1->data = &data;
-				irq_config(pwm1);
-			}*/
-			if (data.id == 0) {
-				irq_config(pwm0, &data);
-			} else {
-				irq_config(pwm1, &data);
-			}
+						
+			data.id ? irq_config(pwm1, &data) : irq_config(pwm0, &data);
 			
 			mutex_unlock(&pwm_mutex); 
 			/* End critical section */
-			printk(KERN_INFO "PWM %d done initializing \n", data.id); 
+			printk(KERN_INFO "PWM %d initializing done\n", data.id); 
 			break;
 		}
 		
@@ -353,21 +336,26 @@ static long pwm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		
 			/* Begin critical section. Data is written to the hardware */
 			mutex_lock(&pwm_mutex); 
+						
+			data.id ? pwm_set_data(pwm1, &data) : pwm_set_data(pwm0, &data);			
+									
+			mutex_unlock(&pwm_mutex); 
+			/* End critical section */
+			break;
+		}
+		
+		case PWM_ENABLE:
+		{
+			struct PWM_DATA data;
 			
-		//	pwm_validate(&p); TODO
-			
-			/*if (data.id == 0) {
-				pwm0->data = &data;
-				pwm_set(pwm0);
-			} else {
-				pwm1->data = &data;
-				pwm_set(pwm1);
-			}*/
-			if (data.id == 0) {
-				pwm_set(pwm0, &data);
-			} else {
-				pwm_set(pwm1, &data);
+			if (copy_from_user(&data, (struct data*)arg, sizeof(data))){
+				return -EFAULT;
 			}
+		
+			/* Begin critical section. Data is written to the hardware */
+			mutex_lock(&pwm_mutex); 
+						
+			data.id ? pwm_set_enable(pwm1, &data) : pwm_set_enable(pwm0, &data);			
 									
 			mutex_unlock(&pwm_mutex); 
 			/* End critical section */
@@ -410,20 +398,18 @@ int init_module(void)
     
     map_registers(); 
 
+	/* These GPIO's are used by the PWM's and but not fysically */
+	/* connected on the Raspberry circuit board connector. */
     SET_GPIO_ALT(PWM_0_GPIO, GPIO_ALTFUN); 
     SET_GPIO_ALT(PWM_1_GPIO, GPIO_ALTFUN);
     
-    pwm0 = pwm_create(PWM_CTL_MSEN1, PWM_CTL_PWEN1, PWM_RNG1, PWM_DAT1, (irq_handler_t)pwm_0_irq_handler, PWM0_NAME);
-    pwm1 = pwm_create(PWM_CTL_MSEN2, PWM_CTL_PWEN2, PWM_RNG2, PWM_DAT2, (irq_handler_t)pwm_1_irq_handler, PWM1_NAME);
-    
-    // TODO: Controlle of pwm's aangemaakt zijn !!!!
-    
-    // Set pin directions for the output
-	//INP_GPIO(14);
-	//OUT_GPIO(14);
-	
-    //irq_config(pwm0); 
-    
+    pwm0 = pwm_create(PWM_CTL_MSEN1, PWM_CTL_PWEN1, PWM_RNG1, PWM_DAT1, (irq_handler_t)pwm_0_irq_handler, PWM_0_GPIO, PWM0_NAME, PWM0_DEV);
+    pwm1 = pwm_create(PWM_CTL_MSEN2, PWM_CTL_PWEN2, PWM_RNG2, PWM_DAT2, (irq_handler_t)pwm_1_irq_handler, PWM_1_GPIO, PWM1_NAME, PWM1_DEV);
+    /* Check if pwm0 and pwm1 is created and report errors */
+    if((!pwm0) || (!pwm1)) {
+		printk(KERN_ALERT "Creating PWM's failed\n");
+	}
+           
     printk(KERN_INFO "Succesfully registered module %s\n", PWM_DEVICE_NAME); 
 	return SUCCESS;
 }
