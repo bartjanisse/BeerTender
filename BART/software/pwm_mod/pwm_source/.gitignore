@@ -4,6 +4,8 @@
 *.depend
 *.o
 *.ko
+*.cmd
+*.symvers
 *.mod.c
 *.mod.o
 *.tar
