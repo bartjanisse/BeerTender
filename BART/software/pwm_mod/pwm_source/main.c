@@ -182,7 +182,7 @@ static void pwm_set_enable(struct PWM *pwm, struct PWM_DATA *data)
 {
 	if (data->enable) {
 		/* Set enable flag */
-		*(pwm_addr + PWM_CTL) = pwm->msen | pwm->pwen;
+		*(pwm_addr + PWM_CTL) = *(pwm_addr + PWM_CTL) | pwm->msen | pwm->pwen;
 		printk(KERN_INFO "PWM %d started\n", data->id);
 	} else {
 		/* Clear enable flag */
@@ -192,7 +192,7 @@ static void pwm_set_enable(struct PWM *pwm, struct PWM_DATA *data)
 }
 
 /**
- * Function to set PWM cycle and duty cycle
+ * Function to set PWM cycle and duty cycle....verder uitleggen hoe de bereking plaats vindt
  */
 static void pwm_set_data(struct PWM *pwm, struct PWM_DATA *data)
 {
@@ -236,17 +236,17 @@ static void clk_set(struct CLOCK *clock)
  */
 static unsigned int registers_map(void) 
 {
-	gpio_addr = (volatile unsigned int *)ioremap(GPIO_BASE,  4096)
+	gpio_addr = (volatile unsigned int *)ioremap(GPIO_BASE,  4096);
 	if (!gpio_addr) {
 		return -1;
 	}
 
-	pwm_addr  = (volatile unsigned int *)ioremap(PWM_BASE,   4096)
+	pwm_addr  = (volatile unsigned int *)ioremap(PWM_BASE,   4096);
 	if (!pwm_addr) {
 		return -1;
 	}
 
-	clk_addr  = (volatile unsigned int *)ioremap(CLOCK_BASE, 4096)
+	clk_addr  = (volatile unsigned int *)ioremap(CLOCK_BASE, 4096);
 	if (!clk_addr) {
 		return -1;
 	}
@@ -297,9 +297,9 @@ static long pwm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	{
 		case CLK_SET:
 		{		
-			struct CLOCK c;
+			struct CLOCK clock;
 			
-			if (copy_from_user(&c, (struct c*)arg, sizeof(c))){
+			if (copy_from_user(&clock, (struct clock*)arg, sizeof(clock))){
 				return -EFAULT;
 			}
 		
@@ -307,7 +307,7 @@ static long pwm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			mutex_lock(&pwm_mutex); 
 			
 			//clk_validate(&c); //************** TODO ******
-			clk_set(&c);
+			clk_set(&clock);
 									
 			mutex_unlock(&pwm_mutex); 
 			/* End critical section */
