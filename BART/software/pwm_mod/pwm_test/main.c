@@ -1,10 +1,6 @@
 /*
- *  XXXXXX.c - the process to use ioctl's to control the kernel module
+ *  main.c - the process to use ioctl's to control the kernel module
  *
- *  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
- *  Until now we could have used cat for input and output.  But now
- *  we need to do ioctl's, which require writing our own process.
- * XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxx
  */
 
 /* 
@@ -19,7 +15,6 @@
 #include <fcntl.h>			/* for open() */
 #include <unistd.h>			/* for exit() */
 #include <sys/ioctl.h>		/* for ioctl() */
-
 
 struct PWM_DATA *pwm0, *pwm1;
 
@@ -97,9 +92,6 @@ int main()
 	char        	strVal[80];
 	unsigned int 	val;
 	unsigned int 	id;
-	//unsigned int 	cycle;
-	//unsigned int 	pwm0_cycle = 0;
-	//unsigned int 	pwm1_cycle = 0;
 		
 	pwm_file_desc = open(PWM_DEVICE_NAME, 0);
 	if (pwm_file_desc < 0) {

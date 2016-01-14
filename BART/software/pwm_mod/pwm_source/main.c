@@ -1,8 +1,17 @@
 /*
  * (C) 2015 - A.W. Janisse
  * 
- * main.c - Main pwm module definitions.
+ * main.c - Main PWM module definitions.
  * 
+ * This project has the following todo's:
+ * 
+ * 	o	Validation of parameters received from user space.
+ * 	o	Performance testing to find frequency/duty limits and document 
+ * 		this in a report.
+ * 	o	Some network comments are some what sparse.
+ * 	o	Split this main file into separate .c/.h files.
+ * 	o	Documentation (writing or generating) wihich explains the 
+ * 		working and usage of this module.
  */
  
 #include <linux/kernel.h>
@@ -163,15 +172,6 @@ static void pwm_destroy(struct PWM *pwm)
 		kfree(pwm);
 	}
 }
-
-/*void pwm_validate(struct PWM *p)
-{
-	if (p->id > 1) {
-		p->id = 1;
-	}
-	
-	p->duty = (p->duty > 1000) ? 1000 : p->duty;
-}*/
 
 /**
  * Function pwm_set_enable() - Start or stops the given PWM by 
