@@ -180,7 +180,7 @@ int init_module(void)
 	*(clk + CLK_DIV)  = CLK_PASSWD | CLK_DIV_DIVI(96); 
 	
 	// source=osc and enable clock
-	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_ENAB | CLK_CTL_SRC(CLK_CTL_SRC_OSC); 
+	*(clk + CLK_CTL) = CLK_PASSWD | CLK_CTL_ENAB | CLK_CTL_SRC(CLK_CTL_SRC_OSC);
 
 	// disable PWM and start with a clean register
 	*(pwm + PWM_CTL) = 0;

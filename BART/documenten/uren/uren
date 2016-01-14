@@ -38,3 +38,19 @@ do 12-11-2015		20:30 - 22:30 	Begonnen met uitzoeken hoe de pwm clock nu precies
 
 za	21-11-2015	13:00 - 16:00	Testopstelling gemaakt met servo motor en, pi en de Logicport
 zo	22-11-2015	11:00 - 	20:00	PWM_1 en PWM_2 opgeschoond en verder uitgebreid zodat de dutycycle naar de device file geschreven kan worden. PWM clock verder uitgezocht en gedocumenteerd.		
+
+zo	06-12-2015	13:00 - 16:00	Inlezen ioctl modules
+zo	13-12-2015	11:00 - 17:00	Basis opgezet van de PWM module
+ma	14-12-2015	20:00 - 22:00	Verder gewerkt aan de PWM module
+di	15-12-2015	20:30 - 22:00	Geprobeerd om een struct als argument (ioctl) mee te geven.
+wo	16-12-2015	20:00 - 22:45	Succevol pointer naar een struct (user -> kernel).
+
+zo 	03-01-2016	11:00 - 16:00	Verdere implementatie PWM module (probleem met onderverdeling in separate .h en .c files)
+zo	03-01-2016	18:00 - 21:30	Methode clk_set() geimplementeerd en getest
+ma	04-01-2016	20:00 - 22:15	Methode pwm_set() geimplementeerd en getest
+di	05-01-2016	19:30 - 21:30	Implementatie interrupts
+za	09-01-2016	12:00 - 	17:00	
+					19:00 - 20:30
+zo	10-01-2016	11:00 - 16:00
+
+di	12-01-2016	19:30 - 22:15	Testprogramma opgeschoond en testen met 2 pwm's gedaan
