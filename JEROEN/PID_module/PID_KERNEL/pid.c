@@ -24,13 +24,17 @@ static int Ts;
 static int Ti;
 // the differation period
 static int Td;
+// integrator
+static int MX;
+// previous process value
+static int PVnn;
 
 static int initialised = 0;
 
 /*
  * pid_ioctl() is used for communication with the module
  * 	options:
- * 		PID_ECHO - is not implemented
+ * 		PID_RESET - is used to reset the integrator and differation
  * 		PID_SET - is used for setting the pid values
  * 		PID_GET - is used to do the calculations
  */
@@ -40,9 +44,9 @@ static long pid_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	
 	switch (cmd)
 	{
-		case PID_ECHO:
+		case PID_RESET:
 		{
-			printk(KERN_INFO "Function is called %lu\n", arg);
+			ResetPid();
 			break;
 		}
 		
@@ -65,6 +69,8 @@ static long pid_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			Ti = pidsettings.Ti;
 			printk(KERN_INFO "PID Td = %d\n", pidsettings.Td);
 			Td = pidsettings.Td;
+			
+			ResetPid();
 			
 			initialised = 1;
 			
@@ -90,9 +96,9 @@ static long pid_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			
 			mutex_lock(&pid_mutex);
 			
-			printk(KERN_INFO "PID setpoint = %d PID value = %d reset = %d\n", pidinput.setpoint, pidinput.processValue, pidinput.reset);
+			printk(KERN_INFO "PID setpoint = %d PID value = %d\n", pidinput.setpoint, pidinput.processValue);
 			
-			ret = PIDcal(pidinput.setpoint, pidinput.processValue, pidinput.reset);
+			ret = PIDcal(pidinput.setpoint, pidinput.processValue);
 			
 			mutex_unlock(&pid_mutex);
 			
@@ -118,14 +124,14 @@ static const struct file_operations pid_fops = {
  */
 int init_module(void)
 {
-	Major = register_chrdev(0, DEVICE_NAME, &pid_fops);
+	Major = register_chrdev(0, PID_DEVICE_NAME, &pid_fops);
 	if (Major < 0)
 	{
 		printk(KERN_ALERT "Registering char device PID failed with %d\n", Major);
 		return Major;
 	}
 	
-	printk(KERN_INFO "Succesfully registered the %s module\n", DEVICE_NAME);
+	printk(KERN_INFO "Succesfully registered the %s module\n", PID_DEVICE_NAME);
 	
 	initialised = 0;
     
@@ -138,7 +144,7 @@ int init_module(void)
  */
 void cleanup_module(void)
 {
-	unregister_chrdev(Major, DEVICE_NAME);
+	unregister_chrdev(Major, PID_DEVICE_NAME);
 	printk(KERN_INFO "Unregistered char device PID\n");
 }
 
@@ -146,17 +152,8 @@ void cleanup_module(void)
  * PIDcal() is doing the calculation of the pid controller
  * 
  */
-int PIDcal(int SPn, int PVn, int reset)
+int PIDcal(int SPn, int PVn)
 {
-	static int MX = 0;
-	static int PVnn = 0;
-	
-	if (reset == 1)
-	{
-		MX = 0;
-		PVnn = 0;
-	}
-	
 	int output, MPn, MIn, MDn;
 	
 	// proportional part
@@ -176,10 +173,13 @@ int PIDcal(int SPn, int PVn, int reset)
 
 	return output;
 }
- 
- 
- 
- 
- 
- 
- 
+
+/*
+ * reset integrator and previous process value
+ */
+void ResetPid(void)
+{
+	printk(KERN_INFO "Reset the integrator and differation\n");
+	MX = 0;
+	PVnn = 0;
+}
