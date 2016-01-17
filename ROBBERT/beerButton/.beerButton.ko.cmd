@@ -1,0 +1,1 @@
+cmd_/home/student/Desktop/beerButton/beerButton.ko := /home/student/buildroot_lin_ver/tools-master/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin/arm-bcm2708-linux-gnueabi-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/student/Desktop/beerButton/beerButton.ko /home/student/Desktop/beerButton/beerButton.o /home/student/Desktop/beerButton/beerButton.mod.o

@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# Script for pwm1 module
+#
+
+case "$1" in
+  start)
+ 	echo $'Loading module...\n'
+	insmod /bin/pwm1.ko
+	echo $'Creating device file...\n'
+	sleep 1
+	mknod /dev/pwm1 c 247 0
+	cat /var/log/messages | tail -6
+	echo $'\nTry on of the following params:\n'
+	echo $'  on - to switch the led on'
+	echo $'  off - to switch the led off'
+	echo $'  info - to get the last log messages\n'
+	;;
+  stop)
+	echo -n $'Stopping module...\n'
+	rmmod pwm1
+	echo $'Removing device file...\n'
+	rm /dev/pwm1
+	echo $'Succesfully stopped the module and removed the device file.'
+	;;
+  info)
+	cat /var/log/messages | tail -20
+	;;
+  restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|reload|info}"
+	exit 1
+esac
+
+exit $?

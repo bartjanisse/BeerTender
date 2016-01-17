@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# Script for button module
+#
+
+case "$1" in
+  start)
+ 	echo $'Loading module...\n'
+	insmod /bin/beerButton.ko
+	echo $'Creating device file...\n'
+	sleep 1
+	mknod /dev/beerButton c 247 0
+	cat /var/log/messages | tail -6
+	echo $'\nTry on of the following params:\n'
+	echo $'  on - to switch the led on'
+	echo $'  off - to switch the led off'
+	echo $'  state - to get te actual LED state\n'
+	;;
+  stop)
+	echo -n $'Stopping module...\n'
+	rmmod beerButton
+	echo $'Removing device file...\n'
+	rm /dev/beerButton
+	echo $'Succesfully stopped the module and removed the device file.'
+	;;
+  info)
+	cat /var/log/messages | tail -20
+	;;
+  on)
+	echo "1" > /dev/beerButton
+	;;
+  off)
+	echo "0" > /dev/beerButton
+	;;	
+  state)
+    cat /dev/beerButton
+	cat /var/log/messages | tail -1
+	cat /var/log/messages | tail -1
+	;;
+  restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|info|on|off|state}"
+	exit 1
+esac
+
+exit $?
