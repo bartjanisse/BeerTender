@@ -1,8 +1,16 @@
 /*
- * gyro.c
+ * Program:
+ *   gyro.c
  * AUTHOR: Dennis Jessurun
  * use "make" to build this module.
  * use "make install" to copy the gyro program to the Pi /bin directory
+ * 
+ * Datasheets:
+ *   MPU-6000 and MPU-6050 Register Map and Descriptions Revision 4.0
+ *       http://www6.in.tum.de/pub/Main/TeachingWs2015SeminarAuonomousFahren/RM-MPU-6000A.pdf
+ * 
+ *   MPU-6000 and MPU-6050 Product Specification Revision 3.3
+ *       http://www.seeedstudio.com/wiki/images/b/b1/MPU6050.pdf
  * 
  * Accelero messurement registers:
  *   0x3B;    		ACCEL_XOUT[15:8]
@@ -125,7 +133,7 @@ struct bcm2835_peripheral bsc0 = {BSC0_BASE};
  * wait_i2c_done() - Function to wait for the I2C transaction to complete
  */
 void wait_i2c_done() {
-	//Wait till done, let's use a timeout just in case
+	// Wait till done, lets use a timeout just in case
 	int timeout = 50;
 	while((!((BSC0_S) & BSC_S_DONE)) && --timeout) {
 		usleep(1000);
@@ -201,8 +209,7 @@ void MPU6050_SetRegister(unsigned char regAddr, unsigned char regValue)
     wait_i2c_done();
 }
 
-void MPU6050_Init()
-{
+void MPU6050_Init() {
     //MPU6050_SetRegister(PWR_MGMT_1, 0x80);	// Device Reset
     MPU6050_SetRegister(PWR_MGMT_1, 0x00); 		// Clear sleep bit
     MPU6050_SetRegister(CONFIG, 0x00); 	
@@ -253,7 +260,7 @@ void MPU6050_Read() {
 		accData[i] = tmp;
     }
     
-    printf("gyr_XOUT: %.2f\t\t gyr_YOUT: %.2f\t gyr_ZOUT: %.2f\n", 
+    printf("gyr_XOUT: %.2f\t gyr_YOUT: %.2f\t gyr_ZOUT: %.2f\n", 
 		((float)gyrData[0]/ACCELEROMETER_SENSITIVITY)*90, 
 		((float)gyrData[1]/ACCELEROMETER_SENSITIVITY)*90, 
 		((float)gyrData[2]/ACCELEROMETER_SENSITIVITY)*90);
@@ -265,7 +272,7 @@ void MPU6050_Read() {
 	
 	sleep(1);
     
-    // Write data into file "gyro.dat" in order
+    // Write data into file "gyro.dat" in order 
     // to save the data for analysing purposes.
     // Open with param "a" for appending data.
 	FILE *fp;

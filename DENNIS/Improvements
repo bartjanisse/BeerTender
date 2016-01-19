@@ -1,0 +1,20 @@
+How to improve the gyro.c program and gyromod kernel module
+
+
+The gyro.c program requires the "gyromod" kernel module in order to start working. The module 
+must be loaded before the program is executed. The program could be enhanced with one of the 
+following functionalities: 
+	- When the module is unloaded the program should stop working completely.
+	- When the module is unloaded the program should be killed.
+
+There are a couple improvements to be made in order to enhance the quality and readability of 
+the code.
+	- The MPU_Read() method has to many functionalities. New methods for creating and writing 
+	  into file "gyro.dat" could be made.
+	- How to data is written into the file "gyro.dat" could be adjusted.
+	- Gyroscopes drift is unavoidable. In order to compensate the drift a kalman filter could be
+	  implemented.
+
+The kernel module "gyromod" could be enhanced with the following functionalities:
+	- Parameters to set gyroscope sensitivity
+	- Parameters to set accelerometer sensitivity
