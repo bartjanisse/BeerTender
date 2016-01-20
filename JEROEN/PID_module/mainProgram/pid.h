@@ -27,6 +27,8 @@ struct INPUT {
 	int setpoint;
 	// the processvalue for the pid
 	int processValue;
+	// reset for the statics, set 1 to reset
+	int reset;
 };
 
 
@@ -35,14 +37,11 @@ struct INPUT {
 #define PID_DEVICE_FILE_NAME	"/dev/pid"
 #define MAGIC_PATTERN		'P'
 
-// change settings for the pid module
 #define PID_SET _IOW(MAGIC_PATTERN, 0, int)
-// execute a calculation
 #define PID_GET _IOR(MAGIC_PATTERN, 1, int)
-// reset the integrator and differation
-#define PID_RESET _IO(MAGIC_PATTERN, 2)
+
+#define PID_ECHO _IOWR(MAGIC_PATTERN, 2, int)
 
 int PIDcal(int SPn, int PVn);
-void ResetPid(void);
 
 #endif
