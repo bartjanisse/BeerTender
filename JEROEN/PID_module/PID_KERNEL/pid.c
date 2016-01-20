@@ -169,7 +169,7 @@ int PIDcal(int SPn, int PVn)
 	
 	output = MPn + MIn + MDn;
 	
-	printk(KERN_INFO "MPn %d\tMIn %d\tMDn %d\tPVnn %d\toutput %d\n", MPn, MIn, MDn, PVnn, output);
+	printk(KERN_INFO "MPn %d\tMIn %d\tMDn %d\tMX %d\tPVnn %d\toutput %d\n", MPn, MIn, MDn, MX, PVnn, output);
 
 	return output;
 }

@@ -15,7 +15,7 @@ static int file_desc;
  */
 void Pid_reset()
 {
-	printf("pid_reset:\n");	
+	printf("\npid_reset\n");	
 	ioctl(file_desc, PID_RESET);
 }
 
@@ -31,7 +31,7 @@ void Pid_set(int Kc, int Ts, int Ti, int Td)
 	pidsettings.Ti = Ti;
 	pidsettings.Td = Td;
 	
-	printf("\npid_set:\n");
+	printf("\npid_set\n");
 	
 	ioctl(file_desc, PID_SET, &pidsettings);
 }
@@ -48,7 +48,7 @@ int Pid_get(int Sp, int Pv)
 	input.setpoint = Sp;
 	input.processValue = Pv;
 	
-	printf("\npid_get: ");
+	printf("\npid_get\n");
 	
 	returnvalue = ioctl(file_desc, PID_GET, &input);
 	
@@ -71,22 +71,34 @@ void Enter_pid_settings()
 	int value;
 	
 	printf("Send new settings to the pid module\n");
+	printf("Press enter to send default values\n");
 	
 	printf("Enter the loop gain (%d) ", loopGain);
 	fgets(stringValue, sizeof(stringValue), stdin);
-	loopGain = atoi(stringValue);
+	if (stringValue[0] != '\n')
+		loopGain = atoi(stringValue);
 	
 	printf("Enter the sample time (%d) ", sampleTime);
 	fgets(stringValue, sizeof(stringValue), stdin);
-	sampleTime = atoi(stringValue);
+	if (stringValue[0] != '\n')
+		sampleTime = atoi(stringValue);
 	
 	printf("Enter the integration period, set very large to dissable (%d) ", integrationPeriod);
 	fgets(stringValue, sizeof(stringValue), stdin);
-	integrationPeriod = atoi(stringValue);
+	if (stringValue[0] != '\n')
+		integrationPeriod = atoi(stringValue);
 	
 	printf("Enter the differation period, set to zero to dissable (%d) ", differationPeriod);
 	fgets(stringValue, sizeof(stringValue), stdin);
-	differationPeriod = atoi(stringValue);
+	if (stringValue[0] != '\n')
+		differationPeriod = atoi(stringValue);
+		
+	printf("\nNew PID values:");
+	printf("\n\tLoop gain \t\t%d", loopGain);
+	printf("\n\tSample time \t\t%d", sampleTime);
+	printf("\n\tIntegration period \t%d", integrationPeriod);
+	printf("\n\tDifferation period \t%d", differationPeriod);
+	printf("\n");
 	
 	Pid_set(loopGain, sampleTime, integrationPeriod, differationPeriod);
 	printf("\n\n");
@@ -104,14 +116,17 @@ void Execute_calculation()
 	char stringValue[99];
 	
 	printf("Send a calculation to the pid module\n");
+	printf("Press enter to send default values\n");
 
 	printf("Enter the set point as int (%d) ", setpoint);
 	fgets(stringValue, sizeof(stringValue), stdin);
-	setpoint = atoi(stringValue);
+	if (stringValue[0] != '\n')
+		setpoint = atoi(stringValue);
 	
-	printf("\nEnter the process value as int (%d) ", processValue);
+	printf("Enter the process value as int (%d) ", processValue);
 	fgets(stringValue, sizeof(stringValue), stdin);
-	processValue = atoi(stringValue);
+	if (stringValue[0] != '\n')
+		processValue = atoi(stringValue);
 	
 	result = Pid_get(setpoint, processValue);
 	
@@ -159,7 +174,7 @@ void Switch_option(char option)
 			Pid_reset();
 			break;
 		default:
-			printf("Invalid option\n");
+			printf("Invalid option\n\n");
 			break;
 	}
 }

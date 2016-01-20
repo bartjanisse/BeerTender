@@ -1,6 +1,7 @@
 # Description:
 The goal of this code is to make a PID calculation module for the raspberry pi2
-The calculation of the pid is based on Siemens S7 *** INSERT INFO AND LINK HERE ***
+The calculation of the pid is based on Siemens S7-200 System Manual, page 146
+http://www1.siemens.cz/ad/current/content/data_files/automatizacni_systemy/mikrosystemy/simatic_s7200/manual_s7_200_2005_en.pdf
 
 
 # Compilation:
@@ -17,6 +18,10 @@ $ insmod pid.ko
 $ mknod /dev/pid c 247 0
 The module is now started. Check the log file to see the kernel messages
 $ tail /var/log/messages
+
+To stop the module:
+$ rmmod pid.ko
+$ rm /dev/pid
 
 Communication with the module can be done by using ioctl to the device file /dev/pid
 3 controls are implemented.
