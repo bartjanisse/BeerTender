@@ -1,0 +1,38 @@
+Raspian standaard download -> via sudo raspi-config i2c tools aangezet
+
+1: Raspian image
+
+	- Pi aangesloten op een Arduino
+	- Basic software die gebruikt maakt van 'een'  driver getest. Dit werkt
+	- i2cdetect -y 1 gedraaid. Dit laat netjes het aangesloten adres van de Arduino zien
+
+
+
+2: Raspian image
+
+	- In de software van Robbert de  GPIO 0 en 1 gebruikt.
+	- Onze eigen low level i2c in userspace gecompileerd.
+	- Dit werkt maar we krijgen wel een i2c time-out
+	- Dit had te maken met een printf op de verkeerde plek. Deze stond na het vullen van de registers FIFo en DLEN
+	- Deze printf verwijderd en nu werkt het goed!!
+
+	- In de software van Robbert de  GPIO 17 en 27 gebruikt.
+	- Opnieuw gecompileerd. 
+	- Nu werkt het gelukkig niet!!!!
+
+	-  GPIO 2 en 3 gebruikt. Dit klopt volgens Pi 2 pin layout
+	- Dit werkt !!!!
+
+3: Buildroot image
+
+	- Laatste versie cross compiled voor buildroot (Met GPIO 2 en 3)
+	- Runnen op Pi. HET WERKT !!!!!! (led op Arduino gaat aan)
+
+	- Versie weer aangepast naar GPIO 0 en 1
+	- Nu werkt het niet meer!!!!!
+
+
+
+Conclusie. Op Raspian worden GPIO 0 en 1 gemapped naar GPIO 2 en 3
+
+	
